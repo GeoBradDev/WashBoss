@@ -31,7 +31,7 @@ export default function Navbar() {
           {/* Logo */}
           <Box
             component="img"
-            src="/washboss/SCSL.jpeg"
+            src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
             alt="Wash Boss Pressure Washing"
             sx={{ height: 56, width: 56, borderRadius: '50%', cursor: 'pointer', objectFit: 'cover' }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

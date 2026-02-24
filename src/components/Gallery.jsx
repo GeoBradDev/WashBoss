@@ -1,20 +1,22 @@
 import { Box, Container, Grid, Typography } from '@mui/material'
 
+const BASE = import.meta.env.BASE_URL
+
 const PHOTOS = [
-  { src: '/washboss/photo-01.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-02.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-03.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-04.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-05.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-06.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-07.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-08.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-09.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-10.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-11.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-12.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-13.jpeg', alt: 'Pressure washing job' },
-  { src: '/washboss/photo-14.jpeg', alt: 'Pressure washing job' },
+  { src: `${BASE}photo-01.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-02.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-03.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-04.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-05.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-06.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-07.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-08.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-09.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-10.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-11.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-12.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-13.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-14.jpeg`, alt: 'Pressure washing job' },
 ]
 
 export default function Gallery() {
