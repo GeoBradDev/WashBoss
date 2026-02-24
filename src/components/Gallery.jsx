@@ -15,8 +15,12 @@ const PHOTOS = [
   { src: `${BASE}photo-10.jpeg`, alt: 'Pressure washing job' },
   { src: `${BASE}photo-11.jpeg`, alt: 'Pressure washing job' },
   { src: `${BASE}photo-12.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-16.jpeg`, alt: 'Pressure washing job' },
   { src: `${BASE}photo-13.jpeg`, alt: 'Pressure washing job' },
   { src: `${BASE}photo-14.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-15.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-17.jpeg`, alt: 'Pressure washing job' },
+  { src: `${BASE}photo-18.jpeg`, alt: 'Pressure washing job' },
 ]
 
 export default function Gallery() {
