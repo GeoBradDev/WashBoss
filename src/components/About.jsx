@@ -18,7 +18,7 @@ export default function About() {
         <Grid container spacing={8} alignItems="center">
 
           {/* Left: Firefighter visual */}
-          <Grid item xs={12} md={5}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <Box sx={{ textAlign: 'center' }}>
               <Box
                 sx={{
@@ -61,7 +61,7 @@ export default function About() {
           </Grid>
 
           {/* Right: Story */}
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <Typography variant="h2" sx={{ mb: 3, color: 'primary.main' }}>
               About Wash Boss
             </Typography>

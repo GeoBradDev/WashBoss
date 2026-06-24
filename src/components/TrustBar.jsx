@@ -27,7 +27,7 @@ export default function TrustBar() {
       <Container maxWidth="lg">
         <Grid container spacing={4} justifyContent="center">
           {TRUST_ITEMS.map((item) => (
-            <Grid item xs={12} sm={4} key={item.title}>
+            <Grid size={{ xs: 12, sm: 4 }} key={item.title}>
               <Box sx={{ textAlign: 'center' }}>
                 {item.icon}
                 <Typography variant="h6" sx={{ fontWeight: 700, mt: 1, mb: 0.5 }}>

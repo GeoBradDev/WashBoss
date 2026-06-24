@@ -45,7 +45,7 @@ export default function Contact() {
         <Grid container spacing={8} alignItems="flex-start">
 
           {/* Left: Phone + Location */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ mb: 5 }}>
               <PhoneIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
@@ -93,30 +93,30 @@ export default function Contact() {
           </Grid>
 
           {/* Right: Form */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Box component="form" onSubmit={handleSubmit} noValidate>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth required label="Your Name" name="name"
                     variant="outlined"
                   />
                   <ValidationError field="name" prefix="Name" errors={state.errors} />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth label="Phone Number" name="phone"
                     variant="outlined"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth label="Property Address" name="address"
                     variant="outlined"
                     placeholder="Street address where service is needed"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth select label="Service Needed" name="service"
                     value={service} onChange={(e) => setService(e.target.value)}
@@ -127,7 +127,7 @@ export default function Contact() {
                     ))}
                   </TextField>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth multiline rows={4} label="Additional Details" name="message"
                     variant="outlined"
@@ -135,7 +135,7 @@ export default function Contact() {
                   />
                   <ValidationError field="message" prefix="Message" errors={state.errors} />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   {state.errors && state.errors.length > 0 && (
                     <Alert severity="error" sx={{ mb: 2 }}>
                       Something went wrong. Please call us directly at (636) 614-8371.
