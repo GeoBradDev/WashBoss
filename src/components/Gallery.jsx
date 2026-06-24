@@ -56,6 +56,8 @@ export default function Gallery() {
                 component="img"
                 src={photo.src}
                 alt={photo.alt}
+                loading="lazy"
+                decoding="async"
                 onClick={() => setOpenIndex(i)}
                 sx={{
                   width: '100%',

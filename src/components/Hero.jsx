@@ -37,6 +37,8 @@ export default function Hero() {
         component="img"
         src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
         alt="Wash Boss Pressure Washing Logo"
+        fetchPriority="high"
+        decoding="async"
         sx={{
           width: { xs: 160, md: 220 },
           height: { xs: 160, md: 220 },

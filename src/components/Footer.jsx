@@ -9,6 +9,8 @@ export default function Footer() {
             component="img"
             src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
             alt="Wash Boss Pressure Washing"
+            loading="lazy"
+            decoding="async"
             sx={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', mb: 2 }}
           />
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', mb: 0.5 }}>
