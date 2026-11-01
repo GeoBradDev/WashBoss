@@ -4,32 +4,14 @@ import Lightbox from './Lightbox'
 
 const BASE = import.meta.env.BASE_URL
 
-const PHOTOS = [
-  { src: `${BASE}photo-03.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-04.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-05.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-06.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-09.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-10.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-11.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-12.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-16.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-17.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-18.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-19.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-20.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-21.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-22.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-23.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-24.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-25.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-26.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-27.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-28.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-29.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-30.jpeg`, alt: 'Pressure washing job' },
-  { src: `${BASE}photo-31.jpeg`, alt: 'Pressure washing job' },
-]
+const PHOTOS = Array.from({ length: 22 }, (_, i) => {
+  const n = String(i + 1).padStart(2, '0')
+  return {
+    src: `${BASE}photo-${n}.webp`,
+    thumb: `${BASE}photo-${n}-thumb.webp`,
+    alt: 'Pressure washing job',
+  }
+})
 
 export default function Gallery() {
   const [openIndex, setOpenIndex] = useState(null)
@@ -54,7 +36,7 @@ export default function Gallery() {
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
               <Box
                 component="img"
-                src={photo.src}
+                src={photo.thumb}
                 alt={photo.alt}
                 loading="lazy"
                 decoding="async"
