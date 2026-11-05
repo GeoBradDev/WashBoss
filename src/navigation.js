@@ -8,17 +8,28 @@ export const APPBAR_HEIGHT = 73
 
 export const sectionScrollSx = { scrollMarginTop: `${APPBAR_HEIGHT}px` }
 
+// Top padding of the nav target sections (theme spacing 10).
+export const SECTION_TOP_PADDING = 80
+
+// Section h2s are the scroll target, so a heading below other content (About
+// on a phone, under the stacked left column) still lands on screen. Their
+// margin is the AppBar plus the section padding, so an h2 that is the
+// section's first child lands exactly where scrolling the section put it.
+export const SECTION_HEADING_SCROLL_MARGIN = APPBAR_HEIGHT + SECTION_TOP_PADDING
+
 export function prefersReducedMotion() {
   if (typeof window.matchMedia !== 'function') return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
 // Scrolls the section for `hash` (like "#about") into view, smoothly unless
-// the user asked for reduced motion. Returns the section, or null.
+// the user asked for reduced motion: its h2 when it has one, else the section
+// itself (the contact success state). Returns the section, or null.
 export function scrollToSection(hash) {
   const section = document.querySelector(hash)
   if (!section) return null
-  section.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+  const target = section.querySelector('h2') ?? section
+  target.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   return section
 }
 

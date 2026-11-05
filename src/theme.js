@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles'
+import { SECTION_HEADING_SCROLL_MARGIN } from './navigation'
 
 // Keyboard focus ring shared with the gallery thumbnails and logo: 3px
 // primary.main, at least 6.4:1 on every page background (6.45:1 on the
@@ -56,6 +57,8 @@ const theme = createTheme({
           '&:focus': { outline: 'none' },
           '&:focus-visible': focusOutline(theme),
         },
+        // In-page nav scrolls these h2s; see SECTION_HEADING_SCROLL_MARGIN.
+        'h2[tabindex="-1"]': { scrollMarginTop: SECTION_HEADING_SCROLL_MARGIN },
       }),
     },
     MuiListItemButton: {
