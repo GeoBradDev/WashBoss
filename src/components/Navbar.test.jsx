@@ -156,8 +156,8 @@ describe('Navbar accessibility', () => {
   it('has no axe violations with the drawer closed', async () => {
     const { container } = renderPhoneNavbar()
 
-    // region fires on an isolated render with no landmarks; landmarks are issue #5.
-    expect(await axeViolations(container, { region: { enabled: false } })).toEqual([])
+    // region on (#5). axe skips region on a container element, so this runs on the body.
+    expect(await axeViolations(container.ownerDocument.body)).toEqual([])
   })
 
   it('has no axe violations with the drawer open', async () => {
@@ -165,8 +165,8 @@ describe('Navbar accessibility', () => {
     renderPhoneNavbar()
     await openDrawer(user)
 
-    // region fires on an isolated render with no landmarks; landmarks are issue #5.
-    expect(await axeViolations(document.body, { region: { enabled: false } })).toEqual([])
+    // region on (#5): the page content is in the banner, and the drawer is a modal.
+    expect(await axeViolations(document.body)).toEqual([])
   })
 
   it('scrolls to the top on a logo click without following the link or changing the hash', () => {

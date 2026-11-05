@@ -61,8 +61,8 @@ describe('Lightbox', () => {
   it('has no axe violations while open', async () => {
     renderLightbox()
 
-    // region fires on an isolated render with no landmarks; landmarks are issue #5.
-    expect(await axeViolations(document.body, { region: { enabled: false } })).toEqual([])
+    // region on (#5): the open lightbox is a modal dialog over an aria-hidden page.
+    expect(await axeViolations(document.body)).toEqual([])
   })
 
   it('ignores arrow keys with Alt, Control, or Meta held so browser shortcuts still work', () => {

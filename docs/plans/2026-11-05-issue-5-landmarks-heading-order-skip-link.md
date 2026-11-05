@@ -96,3 +96,11 @@ Chose not to: change the logo link (#6 freeze), make drawer items anchors (froze
 - Criterion 1: Lighthouse accessibility (mobile and desktop) on `npm run preview` before (origin/main) and after, with `landmark-one-main` and `heading-order` results.
 - Criterion 3 (visual): screenshots at 375px and 1440px of each section before and after, compared.
 - Criterion 15: frozen tests unchanged (`git diff origin/main -- src/components/NavbarDrawerFocus.test.jsx` empty; the Navbar.test.jsx diff only adds tests and the #5 region lines); the live drive stubs `fetch` and never submits the form.
+
+### Proof run: strengthened axe `region` lines against origin/main (2026-11-05)
+
+Scratch worktree at origin/main (41f616c), `npm ci`, then only the test change applied.
+
+- `src/components/Navbar.test.jsx`, the two lines tagged "landmarks are issue #5", changed to run with `region` on (`axeViolations(container.ownerDocument.body)` for the closed drawer, `axeViolations(document.body)` for the open drawer). Result on origin/main: `Tests 10 passed (10)`. They do not fail there, and cannot: the isolated Navbar render is entirely inside the AppBar's `<header>`, which was already a banner landmark on main, and the open drawer is a modal whose page behind it is aria-hidden. The old comment ("region fires on an isolated render with no landmarks") was also inaccurate: with a `container` context axe reports `region` as inapplicable, so it never fired. Kept on as a guard (it now actually evaluates `region`), not as a reproduction of the #5 defect.
+- `src/components/Lightbox.test.jsx` with `region` on: `Tests 1 passed` on origin/main, for the same reason (a modal dialog over an aria-hidden page). Kept on as a guard.
+- The #5 defect itself is reproduced by tests that did fail before the fix (commit 3fbe334, run against the pre-fix code): `landmarks.test.jsx` full-page axe reported `heading-order` and `region` (plus no main, no Primary nav, divs instead of sections, 19 headings instead of 11, no skip link); `Gallery.test.jsx` axe on `document.body` reported `region`; `Contact.test.jsx` axe reported `heading-order` and `region`.
