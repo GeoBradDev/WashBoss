@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../test/renderWithTheme'
 import Contact from './Contact'
@@ -47,7 +47,18 @@ describe('Contact form', () => {
 
     await user.click(screen.getByRole('button', { name: 'Request Free Estimate' }))
 
-    expect(await screen.findByText('Name should be filled out')).toBeInTheDocument()
+    await screen.findByText('Name should be filled out')
+
+    // The message must render in the same grid cell as the Name input,
+    // not elsewhere on the page.
+    const nameInput = screen.getByRole('textbox', { name: /Your Name/ })
+    const nameCell = nameInput.closest('.MuiGrid-root')
+    expect(nameCell).not.toBeNull()
+    expect(within(nameCell).getByText('Name should be filled out')).toBeInTheDocument()
+
+    const phoneCell = screen.getByRole('textbox', { name: 'Phone Number' }).closest('.MuiGrid-root')
+    expect(within(phoneCell).queryByText('Name should be filled out')).not.toBeInTheDocument()
+
     expect(screen.getByRole('button', { name: 'Request Free Estimate' })).toBeInTheDocument()
   })
 })

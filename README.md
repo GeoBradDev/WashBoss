@@ -6,7 +6,7 @@ The page sections live in `src/components/` (Navbar, Hero, TrustBar, Services, A
 
 ## Requirements
 
-- Node.js 22 or newer. The exact major version is pinned in `.nvmrc` (run `nvm use` to pick it up).
+- Node.js 22.22.2 or newer on the 22 line, 24.15.0 or newer on the 24 line, or 26 and later (the `engines` range in `package.json`). `.nvmrc` pins the 22 line (run `nvm use` to pick it up).
 - npm (ships with Node).
 
 ## Setup

@@ -27,10 +27,10 @@ Out of scope, left to other issues:
 5. Gallery is tested: it renders 22 thumbnails, and clicking one opens the lightbox showing that photo and the `N / 22` counter; the lightbox Close button closes it.
 6. `src/components/Navbar.jsx` passes the drawer paper styling through `slotProps.paper` instead of the removed `PaperProps`. A test asserts the drawer paper has width 240px and the theme's `background.default` color, and that no element in the document has a `paperprops` attribute. This test fails on the current code.
 7. `.github/workflows/ci.yml` runs `npm ci`, `npm run lint`, `npm test`, `npm run build` on `pull_request` and on `push` to `main`, with read-only `contents` permission, and passes on this PR.
-8. `package.json` has `"engines": {"node": ">=22"}` and the repo has a `.nvmrc`; CI reads its Node version from `.nvmrc`.
+8. `package.json` has `"engines": {"node": "^22.22.2 || ^24.15.0 || >=26.0.0"}` and the repo has a `.nvmrc` (`22`); CI reads its Node version from `.nvmrc`. The range is the intersection of the new devDependencies' engines (review finding: jsdom 31 needs `^22.22.2 || ^24.15.0 || >=26.0.0`, Vitest 5 needs `^22.12.0 || ^24.0.0 || >=26.0.0`, undici needs `>=22.19.0`), so plain `>=22` would admit unsupported versions. npm engine-strict is not enabled.
 9. `README.md` is rewritten: what the project is, Node version, setup, dev/lint/test/build/preview commands, the Formspree form config (where the form ID lives), and the current manual deploy (`npm run deploy` to the `gh-pages` branch). No em dashes, no emojis.
 10. `npm run lint` and `npm run build` still pass; no TypeScript files are added.
-11. `.gitignore` ignores `.claude/worktrees/` and `eslint.config.js` ignores `.claude/worktrees`.
+11. `.gitignore` ignores `.claude/worktrees/`, `eslint.config.js` ignores `.claude/worktrees`, and the Vitest `test.exclude` in `vite.config.js` adds `.claude/worktrees/**` to the defaults so `npm test` in the main checkout never runs worktree tests (verified with `npx vitest list --filesOnly --root <main checkout> --config <this branch>/vite.config.js`, which lists no worktree files; the bare `--root <main checkout>` form reads main's own `vite.config.js`, which has no exclude until this branch merges).
 12. The CI job has a stable id `ci` and name `CI` so it can be marked as a required check.
 
 ## Files that change
@@ -42,6 +42,7 @@ Out of scope, left to other issues:
 - `src/components/Navbar.jsx`: `PaperProps` to `slotProps={{ paper: { sx: { ... } } }}`.
 - `src/components/Navbar.test.jsx`, `src/components/Contact.test.jsx`, `src/components/Gallery.test.jsx` (new).
 - `.github/workflows/ci.yml` (new), `.nvmrc` (new), `README.md` (rewrite).
+  The README also includes short "Continuous integration" and "Agent workflows" sections (review compliance note).
 - `eslint.config.js`: add `.claude/worktrees` to `globalIgnores` (and Node globals only if lint needs them for config or test files).
 - `.gitignore`: add `.claude/worktrees/` so agent worktrees never show as untracked or get linted from the main checkout (orchestrator addition).
 - `CLAUDE.md` (new, written by the orchestrator at the user's direction): scoped git exception for /work-issue, style rules, gate order. Committed with this plan.
