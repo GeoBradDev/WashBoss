@@ -1,7 +1,11 @@
 import { createTheme } from '@mui/material/styles'
+import { SECTION_HEADING_SCROLL_MARGIN } from './navigation'
 
 // Keyboard focus ring shared with the gallery thumbnails and logo: 3px
-// primary.main, at least 6.4:1 on every page background.
+// primary.main, at least 6.4:1 on every page background (6.45:1 on the
+// #141414 cards). The mobile drawer paper renders lighter, #2e2e2e, from the
+// dark-mode elevation overlay: 4.76:1 there, and 3.25:1 on a keyboard-focused
+// drawer item's own #474747 fill (measured in Chrome), above the 3:1 minimum.
 const focusOutline = (theme) => ({
   outline: `3px solid ${theme.palette.primary.main}`,
   outlineOffset: 2,
@@ -39,6 +43,32 @@ const theme = createTheme({
     h4: { fontWeight: 600 },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        // Native fragment jumps (the skip link) animate only for users who
+        // have not asked for reduced motion.
+        '@media (prefers-reduced-motion: no-preference)': {
+          html: { scrollBehavior: 'smooth' },
+        },
+        // Section headings (and the contact section in its success state) take
+        // focus from in-page nav through tabIndex -1. No ring after a mouse
+        // click; the shared ring for keyboard users.
+        'h2[tabindex="-1"], section[tabindex="-1"]': {
+          '&:focus': { outline: 'none' },
+          '&:focus-visible': focusOutline(theme),
+        },
+        // In-page nav scrolls these h2s; see SECTION_HEADING_SCROLL_MARGIN.
+        'h2[tabindex="-1"]': { scrollMarginTop: SECTION_HEADING_SCROLL_MARGIN },
+      }),
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          // Inset so the drawer paper's edge does not clip the ring.
+          '&.Mui-focusVisible': { ...focusOutline(theme), outlineOffset: -3 },
+        }),
+      },
+    },
     MuiButton: {
       // The focus ripple is currentColor at 0.3 opacity, which darkens the orange
       // behind the near-black label below 4.5:1. The outline replaces it.

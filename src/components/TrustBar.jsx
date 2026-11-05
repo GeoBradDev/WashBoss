@@ -30,7 +30,7 @@ export default function TrustBar() {
             <Grid size={{ xs: 12, sm: 4 }} key={item.title}>
               <Box sx={{ textAlign: 'center' }}>
                 {item.icon}
-                <Typography variant="h6" sx={{ fontWeight: 700, mt: 1, mb: 0.5 }}>
+                <Typography variant="h6" component="p" sx={{ fontWeight: 700, mt: 1, mb: 0.5 }}>
                   {item.title}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>

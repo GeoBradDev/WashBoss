@@ -6,6 +6,7 @@ import {
 } from '@mui/material'
 import PhoneIcon from '@mui/icons-material/Phone'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
+import { sectionScrollSx } from '../navigation'
 
 const SERVICE_TYPES = [
   'Pressure Washing',
@@ -77,8 +78,16 @@ export default function Contact() {
   }
 
   if (state.succeeded) {
+    // No h2 in this state: the section is named by the alert and takes focus
+    // itself when a nav item points here.
     return (
-      <Box id="contact" sx={{ py: 10, backgroundColor: '#0d0d0d', borderTop: '1px solid #222' }}>
+      <Box
+        component="section"
+        id="contact"
+        aria-label="Get in Touch"
+        tabIndex={-1}
+        sx={{ py: 10, backgroundColor: '#0d0d0d', borderTop: '1px solid #222', ...sectionScrollSx }}
+      >
         <Container maxWidth="lg">
           <Alert severity="success" sx={{ maxWidth: 600, mx: 'auto', fontSize: '1.1rem', py: 3 }}>
             Message sent! We&apos;ll be in touch soon to schedule your free estimate.
@@ -89,9 +98,19 @@ export default function Contact() {
   }
 
   return (
-    <Box id="contact" sx={{ py: 10, backgroundColor: '#0d0d0d', borderTop: '1px solid #222' }}>
+    <Box
+      component="section"
+      id="contact"
+      aria-labelledby="contact-heading"
+      sx={{ py: 10, backgroundColor: '#0d0d0d', borderTop: '1px solid #222', ...sectionScrollSx }}
+    >
       <Container maxWidth="lg">
-        <Typography variant="h2" sx={{ textAlign: 'center', mb: 1, color: 'primary.main' }}>
+        <Typography
+          variant="h2"
+          id="contact-heading"
+          tabIndex={-1}
+          sx={{ textAlign: 'center', mb: 1, color: 'primary.main' }}
+        >
           Get in Touch
         </Typography>
         <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary', mb: 8 }}>
@@ -104,7 +123,7 @@ export default function Contact() {
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ mb: 5 }}>
               <PhoneIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+              <Typography variant="h4" component="h3" sx={{ fontWeight: 800, mb: 1 }}>
                 Call or Text
               </Typography>
               <Typography
@@ -138,7 +157,7 @@ export default function Contact() {
 
             <Box>
               <LocationOnIcon sx={{ fontSize: 36, color: 'secondary.main', mb: 1 }} />
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
                 Service Area
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>

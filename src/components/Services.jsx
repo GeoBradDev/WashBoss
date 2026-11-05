@@ -3,6 +3,7 @@ import WaterIcon from '@mui/icons-material/Water'
 import CloudIcon from '@mui/icons-material/Cloud'
 import SquareFootIcon from '@mui/icons-material/SquareFoot'
 import GridOnIcon from '@mui/icons-material/GridOn'
+import { sectionScrollSx } from '../navigation'
 
 const SERVICES = [
   {
@@ -33,10 +34,17 @@ const SERVICES = [
 
 export default function Services() {
   return (
-    <Box id="services" sx={{ py: 10, backgroundColor: 'background.default' }}>
+    <Box
+      component="section"
+      id="services"
+      aria-labelledby="services-heading"
+      sx={{ py: 10, backgroundColor: 'background.default', ...sectionScrollSx }}
+    >
       <Container maxWidth="lg">
         <Typography
           variant="h2"
+          id="services-heading"
+          tabIndex={-1}
           sx={{ textAlign: 'center', mb: 1, color: 'primary.main' }}
         >
           Our Services
@@ -64,7 +72,7 @@ export default function Services() {
               >
                 <CardContent>
                   {service.icon}
-                  <Typography variant="h5" sx={{ fontWeight: 700, mt: 1.5, mb: 1 }}>
+                  <Typography variant="h5" component="h3" sx={{ fontWeight: 700, mt: 1.5, mb: 1 }}>
                     {service.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>

@@ -151,10 +151,11 @@ describe('Gallery', () => {
   })
 
   it('has no axe violations when closed', async () => {
-    const { container } = renderWithTheme(<Gallery />)
+    renderWithTheme(<Gallery />)
 
-    // region fires on an isolated render with no landmarks; landmarks are issue #5.
-    expect(await axeViolations(container, { region: { enabled: false } })).toEqual([])
+    // region is on: the gallery is a section named by its h2, a region landmark (#5).
+    // It runs on document.body because axe skips region on a container element.
+    expect(await axeViolations(document.body)).toEqual([])
   })
 
   it('keeps the lightbox open while Enter is held on a thumbnail', async () => {
