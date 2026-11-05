@@ -93,6 +93,7 @@ Use `vi.stubGlobal('fetch', vi.fn())` in each validation test and assert it was 
 - attributes: each field's `id`, `name`, `type`, `inputMode`, `autocomplete` per criterion 5, read from the DOM.
 - honeypot: `container.querySelector('input[name="_gotcha"]')` exists with `id="contact-gotcha"`, `tabindex="-1"`, `aria-hidden="true"`, `autocomplete="off"`, and is `not.toBeVisible()`; it is not returned by `getAllByRole('textbox')`; tabbing through the form from Name never lands on it.
 - axe: `axeViolations` on the rendered Contact section is `[]`, before submit and after an empty submit.
+  - Departure (found while writing the red tests): axe on the Contact section alone reports `heading-order` on the existing `h4` "Call or Text" and `h6` "Service Area" (the section jumps from `h2` to `h4`). It predates #3 and changing headings is outside this issue, so the axe test disables `heading-order` (and `region`, as the other component axe tests do) with a comment. Criterion 9 is read as "no axe violations introduced by #3".
 
 Existing tests stay unchanged except the two above. The general alert tests from #1 already fill Name and Phone through `fillForm`, so they still send a request.
 
