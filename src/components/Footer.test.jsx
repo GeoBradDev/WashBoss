@@ -26,7 +26,7 @@ describe('Footer', () => {
     // Read both colors from the render so a later background change is caught.
     let el = screen.getByText(/All rights reserved/)
     const text = getComputedStyle(el).color
-    let bg = 'rgba(0, 0, 0, 0)'
+    let bg = getComputedStyle(el).backgroundColor
     while (el && (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent' || bg === '')) {
       el = el.parentElement
       bg = el ? getComputedStyle(el).backgroundColor : ''
