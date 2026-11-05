@@ -1,16 +1,51 @@
-# React + Vite
+# WashBoss
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Marketing site for Wash Boss Pressure Washing, a residential and commercial pressure washing business serving St. Louis, MO. It is a single-page static site built with Vite, React 19, and MUI v9, served from GitHub Pages at [washbosspw.com](https://washbosspw.com).
 
-Currently, two official plugins are available:
+The page sections live in `src/components/` (Navbar, Hero, TrustBar, Services, About, Gallery with a lightbox, Contact, Footer). The MUI theme is in `src/theme.js`. Static assets, including the gallery photos and the `CNAME` file, are in `public/`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Requirements
 
-## React Compiler
+- Node.js 22.22.2 or newer on the 22 line, 24.15.0 or newer on the 24 line, or 26 and later (the `engines` range in `package.json`). `.nvmrc` pins the 22 line (run `nvm use` to pick it up).
+- npm (ships with Node).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
+```sh
+npm ci
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server with hot reload. |
+| `npm run lint` | Run ESLint over the project. |
+| `npm test` | Run the Vitest suite once (jsdom and Testing Library) and exit. |
+| `npm run build` | Build the production site into `dist/`. |
+| `npm run preview` | Serve the built `dist/` locally to check a production build. |
+| `npm run deploy` | Build and publish `dist/` to the `gh-pages` branch. |
+
+Tests live next to the components they cover (`src/components/*.test.jsx`). Shared test setup is in `src/test/`.
+
+## Contact form
+
+The contact form posts to [Formspree](https://formspree.io) through `@formspree/react`. The form ID (`xqedwlwr`) is set in the `useForm` call in `src/components/Contact.jsx`. To point the form at a different Formspree form, change that ID. Submissions and notification emails are managed in the Formspree dashboard.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs `npm ci`, `npm run lint`, `npm test`, and `npm run build` on every pull request and on pushes to `main`, using the Node version from `.nvmrc`.
+
+## Deploying
+
+Deploys are manual. From an up to date `main`:
+
+```sh
+npm run deploy
+```
+
+This runs the build (`predeploy`) and pushes `dist/` to the `gh-pages` branch with the `gh-pages` package. GitHub Pages serves that branch, and the custom domain comes from `public/CNAME`.
+
+## Agent workflows
+
+`CLAUDE.md` holds the instructions and gates that coding agents follow when working in this repository.
