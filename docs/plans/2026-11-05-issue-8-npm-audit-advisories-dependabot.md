@@ -3,7 +3,7 @@
 Risk tier: Medium. Runtime dependencies (react, react-dom, MUI) move within their ranges and
 ship to production on merge; rendering parity is only partly covered by the unit and axe
 tests, so a live drive is required. No code path in the forced-High list changes: the diff is
-`package.json`, `package-lock.json`, and a new `.github/dependabot.yml`.
+`package.json`, `package-lock.json`, a new `.github/dependabot.yml`, and this plan.
 
 Domain skills:
 - vercel-react-best-practices: not applicable because no React source changes.
@@ -54,9 +54,9 @@ Domain skills:
    `^10.2.6` by eslint 10.14.0 and `^10.2.4` by @eslint/config-array 0.23.5. No patched
    10.x exists. Add `"overrides": { "minimatch": "11.0.4" }`, pinned exactly to the tested
    version so any later change to it is a deliberate edit (approved by the orchestrator;
-   this is a major bump of a transitive package). Dependabot does not update npm
-   `overrides` entries (dependabot-core issues 5590 and 14736 are open), so the override
-   is maintained by hand: the PR body says so, lists every package `npm ls minimatch`
+   this is a major bump of a transitive package). Dependabot has no support for managing
+   npm `overrides` entries (an open feature request, dependabot-core issue 14736, asks for
+   it), so the override is maintained by hand: the PR body says so, lists every package `npm ls minimatch`
    shows under it, and notes it can be removed once eslint and @eslint/config-array
    depend on a patched minimatch.
 3. Raise the direct ranges in `package.json` to the resolved versions (same major), so a
