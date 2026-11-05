@@ -30,12 +30,30 @@ export default function Navbar() {
         <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
           {/* Logo */}
           <Box
-            component="img"
-            src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
-            alt="Wash Boss Pressure Washing"
-            sx={{ height: 56, width: 56, borderRadius: '50%', cursor: 'pointer', objectFit: 'cover' }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          />
+            component="a"
+            href="#hero"
+            aria-label="Wash Boss Pressure Washing, back to top"
+            onClick={(e) => {
+              e.preventDefault()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            sx={{
+              display: 'block',
+              borderRadius: '50%',
+              '&:focus-visible': {
+                outline: '3px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: 2,
+              },
+            }}
+          >
+            <Box
+              component="img"
+              src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
+              alt=""
+              sx={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+            />
+          </Box>
 
           {/* Desktop nav */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
@@ -60,6 +78,9 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <IconButton
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-nav-drawer"
             sx={{ display: { xs: 'flex', md: 'none' }, color: 'primary.main' }}
             onClick={() => setDrawerOpen(true)}
           >
@@ -69,7 +90,7 @@ export default function Navbar() {
 
         {/* Mobile drawer */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}
-          slotProps={{ paper: { sx: { backgroundColor: 'background.default', width: 240 } } }}
+          slotProps={{ paper: { id: 'mobile-nav-drawer', 'aria-label': 'Navigation menu', sx: { backgroundColor: 'background.default', width: 240 } } }}
         >
           <List sx={{ pt: 4 }}>
             {NAV_LINKS.map((link) => (
