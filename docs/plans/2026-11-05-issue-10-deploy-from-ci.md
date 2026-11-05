@@ -58,7 +58,7 @@ jobs:
   ci:
     name: CI
     # unchanged steps, then:
-      - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      - if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
@@ -66,7 +66,7 @@ jobs:
   deploy:
     name: Deploy
     needs: ci
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write

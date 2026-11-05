@@ -23,8 +23,8 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
-      # Only main is deployed; pull requests never upload a Pages artifact.
-      - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      # Only pushes and manual runs on main upload a Pages artifact; pull requests never do.
+      - if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
@@ -32,7 +32,7 @@ jobs:
   deploy:
     name: Deploy
     needs: ci
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
