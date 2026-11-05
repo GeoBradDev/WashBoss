@@ -36,7 +36,7 @@ function validateContact({ name, phone, email }) {
 }
 
 export default function Contact() {
-  const [state, handleSubmit] = useForm('xqedwlwr')
+  const [state, handleSubmit, reset] = useForm('xqedwlwr')
   const [service, setService] = useState('')
   const [values, setValues] = useState({ name: '', phone: '', email: '' })
   const [showErrors, setShowErrors] = useState(false)
@@ -58,13 +58,22 @@ export default function Contact() {
     if (found.name || found.phone || found.email) {
       event.preventDefault()
       setShowErrors(true)
+      // Drop errors from an earlier Formspree request so its alert and
+      // inline 422 text do not sit next to the new browser errors.
+      reset()
       const firstInvalid = found.name ? nameRef : found.phone ? phoneRef : emailRef
       firstInvalid.current?.focus()
       return
     }
-    // handleSubmit reads event.currentTarget synchronously, so nothing may be
-    // awaited before this call.
-    handleSubmit(event)
+    // Read the form synchronously: event.currentTarget is null after an await.
+    const data = new FormData(event.currentTarget)
+    event.preventDefault()
+    // Send the trimmed email, and leave it out when blank: Formspree treats
+    // an email field as the reply-to address and validates it.
+    const trimmedEmail = values.email.trim()
+    if (trimmedEmail) data.set('email', trimmedEmail)
+    else data.delete('email')
+    handleSubmit(data)
   }
 
   if (state.succeeded) {
@@ -178,6 +187,7 @@ export default function Contact() {
                     error={Boolean(errors.phone)}
                     helperText={errors.phone ?? CONTACT_HINT}
                   />
+                  <ValidationError field="phone" prefix="Phone" errors={state.errors} />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
@@ -189,6 +199,7 @@ export default function Contact() {
                     error={Boolean(errors.email)}
                     helperText={errors.email ?? CONTACT_HINT}
                   />
+                  <ValidationError field="email" prefix="Email" errors={state.errors} />
                 </Grid>
                 <Grid size={12}>
                   <TextField
