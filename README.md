@@ -25,7 +25,7 @@ npm ci
 | `npm run build` | Build the production site into `dist/`. |
 | `npm run preview` | Serve the built `dist/` locally to check a production build. |
 
-Tests live next to the components they cover (`src/components/*.test.jsx`). Shared test setup is in `src/test/`.
+Component tests live next to the components they cover (`src/components/*.test.jsx`). Theme tests sit next to `src/theme.js`, and shared test setup and site-wide tests are in `src/test/`.
 
 ## Contact form
 

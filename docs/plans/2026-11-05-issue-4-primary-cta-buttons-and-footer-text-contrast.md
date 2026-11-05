@@ -145,3 +145,16 @@ Domain skills:
 `npx vitest run src/test/focusRing.test.jsx`: 1 failed, 3 passed.
 `does not pulse a focus ripple over a focused Button label`:
 `expected <span ...> to be null` (the `.MuiTouchRipple-ripplePulsate` element exists).
+
+### After the fix
+
+- Gate on 304f667: `npm ci` (0 vulnerabilities), `npm run lint` clean, `npm test` 9 files
+  and 53 tests passed, `npm run build` OK.
+- Lighthouse snapshot on the production preview: `color-contrast` passes at 375px and
+  1440px (0 failures; before: 3 and 4 nodes).
+- Live drive at 1440px: all four contained buttons hover to `rgb(224, 94, 0)` with
+  `rgb(10, 10, 10)` text. Keyboard focus on a contained Button gives a solid
+  `rgb(255, 107, 0)` outline and no ripple element. Lightbox Close, Previous and Next and
+  the 375px hamburger show the same outline plus `rgb(10, 10, 10) 0 0 0 2px`. The gallery
+  thumbnail keeps the single outline added in PR #14. The 375px drawer button is `#FF6B00` with
+  `#0a0a0a` text.
