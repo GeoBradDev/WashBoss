@@ -65,13 +65,15 @@ describe('Contact form', () => {
     expect(init.method).toBe('POST')
   })
 
-  it('shows the field-level error next to Name when Formspree rejects an empty name', async () => {
+  it('shows the field-level error next to Name when Formspree rejects the name', async () => {
     mockFetchResponse(422, {
       errors: [{ field: 'name', code: 'REQUIRED_FIELD_EMPTY', message: 'should be filled out' }],
     })
     const user = userEvent.setup()
     renderWithTheme(<Contact />)
 
+    await user.type(screen.getByLabelText(/Your Name/), 'Test Customer')
+    await user.type(screen.getByLabelText('Phone Number'), '5555550100')
     await user.click(screen.getByRole('button', { name: 'Request Free Estimate' }))
 
     await screen.findByText('Name should be filled out')
@@ -150,6 +152,8 @@ describe('Contact form', () => {
       const user = userEvent.setup()
       renderWithTheme(<Contact />)
 
+      await user.type(screen.getByLabelText(/Your Name/), 'Test Customer')
+      await user.type(screen.getByLabelText('Phone Number'), '5555550100')
       await user.click(submitButton())
 
       expect(await screen.findByText('Name should be filled out')).toBeInTheDocument()

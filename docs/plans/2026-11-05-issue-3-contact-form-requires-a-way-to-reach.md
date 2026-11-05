@@ -127,3 +127,24 @@ Chosen not to do:
   10. Network log for the whole drive: no request to `formspree.io`.
 
 Manual follow-up for the user (PR body): in the Formspree dashboard for form `xqedwlwr`, mark `name` as required. The phone-or-email rule is enforced in the browser only. Formspree's docs show per-field validation only (`required`, `type`, `min`, `max`, `minlength`, `maxlength`, `accept` in the field rules), and its Form Rules test one field per condition and can only send an email, tag as spam, or redirect; none of them rejects a submission or combines two fields, so the server cannot require "phone or email".
+
+### Pre-#1 proof for the rewritten 422 test (recorded 2026-11-05)
+
+Scratch worktree at `7738c05^` (2082be1, before #1's fix), `npm ci`, then `src/components/Contact.test.jsx` replaced with only the rewritten test `shows the general alert as well as the inline message for a field-only 422` (with its `mockFetchResponse` and `submitButton` helpers). Name and Phone are typed (`Test Customer`, `5555550100`) before submit, the 422 mock and both assertions are unchanged.
+
+```
+git worktree add --detach <scratchpad>/proof-1 7738c05^
+cd <scratchpad>/proof-1 && npm ci
+npx vitest run src/components/Contact.test.jsx
+
+ ❯ src/components/Contact.test.jsx (1 test | 1 failed) 255ms
+       × shows the general alert as well as the inline message for a field-only 422 255ms
+ FAIL  src/components/Contact.test.jsx > Contact form > failed submission > shows the general alert as well as the inline message for a field-only 422
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+ ❯ src/components/Contact.test.jsx:40:21
+     39|       expect(await screen.findByText('Name should be filled out')).toB...
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+```
+
+The inline `Name should be filled out` assertion (line 39) passes, so the request still goes out and the 422 comes back; the test fails only on the missing general alert, which is #1's defect. The scratch worktree was then removed with `git worktree remove --force`.
