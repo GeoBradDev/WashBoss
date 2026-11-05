@@ -181,5 +181,31 @@ describe('Contact form', () => {
       expect(await screen.findByText(/Message sent!/)).toBeInTheDocument()
       expect(screen.queryByText(/614-8371/)).not.toBeInTheDocument()
     })
+
+    it('removes the alert during a retry and shows it again when the retry also fails', async () => {
+      let rejectRetry
+      const fetchMock = vi.fn()
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockImplementationOnce(() => new Promise((resolve, reject) => { rejectRetry = reject }))
+      vi.stubGlobal('fetch', fetchMock)
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await fillForm(user)
+      await user.click(submitButton())
+      const firstAlert = await screen.findByRole('alert')
+
+      await user.click(submitButton())
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+      rejectRetry(new TypeError('Failed to fetch'))
+
+      const secondAlert = await screen.findByRole('alert')
+      expect(secondAlert).toHaveTextContent('(636) 614-8371')
+      // A new element, so assistive technology announces the second failure.
+      expect(secondAlert).not.toBe(firstAlert)
+      expect(screen.getByLabelText(/Your Name/)).toHaveValue('Test Customer')
+    })
   })
 })

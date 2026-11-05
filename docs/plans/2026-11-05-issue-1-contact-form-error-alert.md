@@ -64,13 +64,14 @@ A helper `mockFetchReject(error)` stubs `fetch` with `vi.fn().mockRejectedValue(
 - 5xx with non-JSON body: 502 `text/html` body: alert shown.
 - field-only 422: alert shown in addition to the inline Name message.
 - retry: first submit rejects, alert shows; second submit is a pending promise: the alert is gone while submitting; resolve it with success and the success message shows.
+- repeated failure: first submit rejects, alert shows; second submit is pending, alert is gone; reject it, and a new alert element appears (criterion 3, announced again) with the data still in the form.
 - success: existing test unchanged. "No error alert after success" is proven by the retry test, which asserts the phone fallback text is gone once the retry succeeds.
 
 ## Risks
 
 - Riskiest step: the "hide while submitting" condition. If wrong, the alert could flicker or never show. The retry test covers it.
 - MUI `TextField select` value check: the select renders a hidden input with `name="service"`; the test reads the visible combobox text instead.
-- Changing copy: kept short, keeps the phone number, no em dash. Revised in Phase 5: the first wording, "Your request was not sent", was false when the POST reaches Formspree but the response is lost or malformed (core catches every fetch and parse error and ignores the HTTP status), and its retry prompt could then create a duplicate lead. The new wording claims only that receipt was not confirmed.
+- Changing copy: kept short, keeps the phone number, no em dash. Revised in Phase 5: the first wording, "Your request was not sent", was false when the POST reaches Formspree but the response is lost or malformed (core catches every fetch and parse error and ignores the HTTP status), and its retry prompt could then create a duplicate lead. The new wording claims only that receipt was not confirmed. It keeps "Please try again" on purpose (approved by the coordinator for the owner): the client cannot tell a lost response from a failed send, so retrying is left to the customer, with the phone number as the alternative. The accepted cost is a possible duplicate lead in that rare case.
 - Chosen not to do: rendering Formspree's own form-level message (`ValidationError` with no field). Its texts are technical (`Failed to fetch`, `Unexpected response format`) and would confuse customers; the fixed copy plus the phone number is clearer.
 
 ## Proof
