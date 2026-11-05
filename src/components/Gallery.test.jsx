@@ -218,4 +218,20 @@ describe('Gallery', () => {
     expect(thumb).toHaveFocus()
     expect(hiddenAncestorsAtFocus).toEqual([null])
   })
+
+  it('stays closed when Enter is held on the Close button', async () => {
+    const user = userEvent.setup()
+    renderWithTheme(<Gallery />)
+
+    const thumb = screen.getByRole('button', { name: thumbName(3) })
+    thumb.focus()
+    await user.keyboard('{Enter}')
+    await screen.findByText('4 / 22')
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+
+    await user.keyboard('{Enter>6/}')
+
+    expect(screen.queryByText('4 / 22')).not.toBeInTheDocument()
+    expect(thumb).toHaveFocus()
+  })
 })
