@@ -44,7 +44,7 @@ Formspree docs (help.formspree.io, "Honeypot spam filtering", via context7 and t
 - `src/components/Contact.jsx`:
   - Add controlled state for `name`, `phone`, `email` (one `values` object or three `useState`s), and a `showErrors` boolean set to true on the first failed submit attempt.
   - A pure `validateContact({ name, phone, email })` function at module scope returning `{ name?, phone?, email? }` messages per criterion 1. Email check: trimmed value matches `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. Errors are derived during render: `const errors = showErrors ? validateContact(values) : {}`. No `useEffect`.
-  - `onSubmit(event)`: compute `validateContact(values)`; if any error, `event.preventDefault()`, `setShowErrors(true)`, focus the first invalid input (refs via `inputRef`, order Name, Phone, Email), return. Otherwise call `handleSubmit(event)` synchronously (see Findings). The `<form>` keeps `noValidate` (explicit validation is the chosen path, per the issue's "do not do neither").
+  - `onSubmit(event)`: compute `validateContact(values)`; if any error, `event.preventDefault()`, `setShowErrors(true)`, focus the first invalid input (refs via `inputRef`, order Name, Phone, Email), return. Also call `useForm`'s `reset()` on that path so errors from an earlier Formspree request clear (revised in review round 1). Otherwise build `new FormData(event.currentTarget)` synchronously, call `event.preventDefault()`, set `email` to its trimmed value or delete it when blank (revised in review round 1, user-approved), and call `handleSubmit(data)` (see Findings). The `<form>` keeps `noValidate` (explicit validation is the chosen path, per the issue's "do not do neither").
   - Fields per criterion 5. Name keeps `required` (asterisk and `aria-required`). Phone and Email are not marked `required`; each gets the default helper text `Phone or email required.` when it has no error, so the rule is visible and in the accessible description before any submit. Each `TextField` gets `error={Boolean(errors.x)}` and `helperText={errors.x ?? default}`.
   - Layout: Name full width (`size={12}`), then Phone and Email side by side (`size={{ xs: 12, sm: 6 }}` each), then Address, Service, Details as now. Grouping Phone and Email shows the either-or rule.
   - Honeypot per criterion 6, inside the form, outside the visible grid flow, via `<Box component="input" ... sx={{ display: 'none' }} />` so the hiding is a generated class, not an inline style.
@@ -101,18 +101,18 @@ Use `vi.stubGlobal('fetch', vi.fn())` in each validation test and assert it was 
 - errors clear while typing after a failed submit: submit empty, type a name, the Name error is gone and its default (none) restored; type a phone, Phone and Email errors are gone.
 - no errors before the first submit: `aria-invalid` absent on all fields, Phone and Email described by `Phone or email required.`
 - valid with email only (name plus `test@example.com`): one POST to `formspree.io/f/xqedwlwr`, success message shown, body `FormData` has `email` equal to `test@example.com` and `_gotcha` equal to `''`.
-- valid with phone only: a new test (name plus `5555550100`) asserting one POST and the body's `phone` equal to `5555550100`, `email` equal to `''`, and `_gotcha` equal to `''`. The existing success test is not edited.
+- valid with phone only: a new test (name plus `5555550100`) asserting one POST and the body's `phone` equal to `5555550100`, no `email` key (`body.has('email')` is false, approved rewrite in review round 1; originally `email` equal to `''`), and `_gotcha` equal to `''`. The existing success test is not edited.
 - attributes: each field's `id`, `name`, `type`, `inputMode`, `autocomplete` per criterion 5, read from the DOM.
 - Departure (found in the live drive, item 8): Chrome's Issues reported one "A form field element should have an id or name attribute". The element is the `aria-hidden` shadow `<textarea>` that MUI 9's `TextareaAutosize` renders for every `multiline` field (Additional Details), which has no id or name and cannot be given one through props. Added test: every `input`, `textarea`, and `select` inside the form has an id or a name (red first). Fix: render Details with `slotProps={{ input: { inputComponent: 'textarea' } }}` and `rows={4}`, a plain textarea with no shadow element; it still has four rows and the multiline styles, but no longer auto-grows (it never did with a fixed `rows`).
 - honeypot: `container.querySelector('input[name="_gotcha"]')` exists with `id="contact-gotcha"`, `tabindex="-1"`, `aria-hidden="true"`, `autocomplete="off"`, and is `not.toBeVisible()`; it is not returned by `getAllByRole('textbox')`; tabbing through the form from Name never lands on it.
 - axe: `axeViolations` on the rendered Contact section is `[]`, before submit and after an empty submit.
   - Departure (found while writing the red tests): axe on the Contact section alone reports `heading-order` on the existing `h4` "Call or Text" and `h6` "Service Area" (the section jumps from `h2` to `h4`). It predates #3 and changing headings is outside this issue, so the axe test disables `heading-order` (and `region`, as the other component axe tests do) with a comment. Criterion 9 is read as "no axe violations introduced by #3".
 
-Existing tests stay unchanged except the two above. The general alert tests from #1 already fill Name and Phone through `fillForm`, so they still send a request.
+Existing tests stay unchanged except the two above, plus the approved phone-only rewrite from review round 1. The general alert tests from #1 already fill Name and Phone through `fillForm`, so they still send a request.
 
 ## Risks
 
-- Riskiest step: calling `handleSubmit(event)` after our own checks. If our handler awaited anything first, `event.currentTarget` would be null and Formspree would throw `submit was triggered for a non-form element`. The handler stays synchronous; the success and failure tests cover it.
+- Riskiest step: handing the form data to `handleSubmit` after our own checks. If our handler awaited anything first, `event.currentTarget` would be null (with the event, Formspree would throw `submit was triggered for a non-form element`; with our own `FormData`, `new FormData(null)` would throw). The handler stays synchronous; the success and failure tests cover it.
 - Switching Name, Phone, Email to controlled inputs: the #1 tests assert values stay after a failed request. Controlled state keeps them; those tests cover it.
 - Email regex too strict would block real customers. The chosen check only requires one `@`, no spaces, and a dot in the domain. Formspree does its own checks server-side.
 - Focus moving on failed submit could surprise sighted users; it is the standard pattern for WCAG 3.3.1 and only happens on a submit attempt.
@@ -133,7 +133,7 @@ Chosen not to do:
   2. Name only: either-or error on both Phone and Email; counter 0.
   3. Invalid email plus phone: Email format error; counter 0.
   4. Fix the fields live and watch errors clear.
-  5. Valid submit with phone, stubbed 200: success message; the stub recorded one call with `email` and empty `_gotcha` in the body.
+  5. Valid submit with phone, stubbed 200: success message; the stub recorded one call with empty `_gotcha` and no `email` key in the body (a phone-only submit; revised in review round 1).
   6. Stubbed network failure on a valid form: the #1 general alert shows.
   7. Mobile emulation (for example 390x844, touch): DOM shows `type="tel"` and `inputmode="tel"` on Phone, `type="email"` on Email, and the autocomplete tokens on every field.
   8. Chrome Issues panel or console on page load: no autocomplete or id/name issue for the form (capture what the tool reports; if the MCP cannot read the Issues panel, say so and report the DOM attribute evidence instead).
