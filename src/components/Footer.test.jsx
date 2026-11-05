@@ -20,7 +20,18 @@ describe('Footer', () => {
     expect(getComputedStyle(copyright).color).toBe(hexToRgb(theme.palette.text.secondary))
   })
 
-  it('gives the copyright token at least 4.5:1 on the footer background', () => {
-    expect(getContrastRatio(theme.palette.text.secondary, FOOTER_BG)).toBeGreaterThanOrEqual(4.5)
+  it('gives the copyright at least 4.5:1 on the rendered footer background', () => {
+    renderWithTheme(<Footer />)
+
+    // Read both colors from the render so a later background change is caught.
+    let el = screen.getByText(/All rights reserved/)
+    const text = getComputedStyle(el).color
+    let bg = 'rgba(0, 0, 0, 0)'
+    while (el && (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent' || bg === '')) {
+      el = el.parentElement
+      bg = el ? getComputedStyle(el).backgroundColor : ''
+    }
+    expect(bg).toBe(hexToRgb(FOOTER_BG))
+    expect(getContrastRatio(text, bg)).toBeGreaterThanOrEqual(4.5)
   })
 })

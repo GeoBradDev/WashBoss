@@ -71,7 +71,9 @@ Domain skills:
   - Revision (live drive): `components.MuiButton.defaultProps.disableFocusRipple: true`.
     MUI's keyboard focus ripple is `currentColor` at 0.3 opacity; with near-black text it
     darkens the orange behind the label to about `#B64E03` (3.78:1), or `#A04503` (3.14:1)
-    when also hovered. The 3px outline replaces it as the focus indicator. IconButton keeps
+    when also hovered. The 3px outline replaces it as the focus indicator. Trade-off:
+    ButtonBase gates the keyboard Space-press ripple on `focusRipple` too, so keyboard
+    presses on MuiButton no longer ripple (mouse and touch ripples are unchanged). IconButton keeps
     its ripple: it has no text label, and the outline carries the indicator.
   - Do not use MUI v9's global `theme.focusVisible` opt-in: it also restyles
     `ListItemButton` (drawer nav, issue #5) and every `ButtonBase`, which is wider than #4.
@@ -85,7 +87,8 @@ Domain skills:
   (>= 3), and that the MuiButton and MuiIconButton overrides define a `.Mui-focusVisible`
   outline in `primary.main`.
 - New `src/components/Footer.test.jsx`: copyright paragraph's computed color is
-  `text.secondary`, and its ratio on `#080808` is >= 4.5.
+  `text.secondary`, and its ratio against the rendered footer background (read from the
+  DOM, expected `#080808`) is >= 4.5.
 - New `src/test/focusRing.test.jsx` (revised from "Lightbox or Navbar tests": jsdom
   resolves the emotion styles, so one theme-level test covers every IconButton and Button
   without coupling to a component): a keyboard-focused `IconButton` and contained `Button`
