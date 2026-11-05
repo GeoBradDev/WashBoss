@@ -20,6 +20,12 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }) {
   // Modal handles Escape and backdrop clicks through onClose. Arrow keys are
   // handled here; Modal's focus trap keeps focus inside this box while open.
   const handleKeyDown = (e) => {
+    // A held Enter that opened the lightbox would otherwise auto-repeat into
+    // a click on the focused Close button, closing and reopening it.
+    if (e.key === 'Enter' && e.repeat) {
+      e.preventDefault()
+      return
+    }
     // Leave modified arrows (Alt+Left is browser Back) to the browser.
     if (e.altKey || e.ctrlKey || e.metaKey) return
     if (e.key === 'ArrowLeft') {
