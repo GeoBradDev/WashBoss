@@ -68,6 +68,11 @@ Domain skills:
     plus `boxShadow: 0 0 0 2px #0a0a0a` (`background.default`), which fills the 2px offset
     gap with near-black, so the orange ring always sits against a dark band and keeps 6.93:1
     even when the lightbox buttons float over a bright photo.
+  - Revision (live drive): `components.MuiButton.defaultProps.disableFocusRipple: true`.
+    MUI's keyboard focus ripple is `currentColor` at 0.3 opacity; with near-black text it
+    darkens the orange behind the label to about `#B64E03` (3.78:1), or `#A04503` (3.14:1)
+    when also hovered. The 3px outline replaces it as the focus indicator. IconButton keeps
+    its ripple: it has no text label, and the outline carries the indicator.
   - Do not use MUI v9's global `theme.focusVisible` opt-in: it also restyles
     `ListItemButton` (drawer nav, issue #5) and every `ButtonBase`, which is wider than #4.
     The gallery thumbnails (`ButtonBase`) and logo (`a`) keep their own #14 outlines and are
@@ -131,3 +136,9 @@ Domain skills:
 - focusRing IconButton and Button: `expected 'none' to be 'solid'` (outline-style)
 - The hover test passes before the fix only because the text is still white (5.42 on the
   computed `#B24A00`). With `#0a0a0a` text and no explicit `primary.dark` it would be 3.65.
+
+### Red run, revision (focus ripple)
+
+`npx vitest run src/test/focusRing.test.jsx`: 1 failed, 3 passed.
+`does not pulse a focus ripple over a focused Button label`:
+`expected <span ...> to be null` (the `.MuiTouchRipple-ripplePulsate` element exists).

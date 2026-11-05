@@ -46,6 +46,18 @@ describe('theme focus ring', () => {
     expect(style.outlineOffset).toBe('2px')
   })
 
+  it('does not pulse a focus ripple over a focused Button label', async () => {
+    // The ripple is currentColor at 0.3 opacity: near-black over the orange it
+    // drops the label to about 3.8:1 (3.1:1 while hovered). The outline replaces it.
+    const user = userEvent.setup()
+    renderWithTheme(<Button variant="contained" color="primary">Get a Free Quote</Button>)
+
+    await user.tab()
+    const button = screen.getByRole('button', { name: 'Get a Free Quote' })
+    expect(button).toHaveClass('Mui-focusVisible')
+    expect(button.querySelector('.MuiTouchRipple-ripplePulsate')).toBeNull()
+  })
+
   it('shows no outline on an IconButton without focus', () => {
     renderWithTheme(<IconButton aria-label="Open menu"><MenuIcon /></IconButton>)
 
