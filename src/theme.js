@@ -40,6 +40,9 @@ const theme = createTheme({
   },
   components: {
     MuiButton: {
+      // The focus ripple is currentColor at 0.3 opacity, which darkens the orange
+      // behind the near-black label below 4.5:1. The outline replaces it.
+      defaultProps: { disableFocusRipple: true },
       styleOverrides: {
         root: ({ theme }) => ({
           borderRadius: 4,
