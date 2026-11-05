@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../test/renderWithTheme'
 import { axeViolations } from '../test/axe'
@@ -63,5 +63,19 @@ describe('Lightbox', () => {
 
     // region fires on an isolated render with no landmarks; landmarks are issue #5.
     expect(await axeViolations(document.body, { region: { enabled: false } })).toEqual([])
+  })
+
+  it('ignores arrow keys with Alt, Control, or Meta held so browser shortcuts still work', () => {
+    const { onPrev, onNext } = renderLightbox()
+    const dialog = screen.getByRole('dialog', { name: 'Photo viewer' })
+
+    for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+      for (const key of ['ArrowLeft', 'ArrowRight']) {
+        const notPrevented = fireEvent.keyDown(dialog, { key, [modifier]: true })
+        expect(notPrevented, `${modifier} ${key} default`).toBe(true)
+      }
+    }
+    expect(onPrev).not.toHaveBeenCalled()
+    expect(onNext).not.toHaveBeenCalled()
   })
 })
