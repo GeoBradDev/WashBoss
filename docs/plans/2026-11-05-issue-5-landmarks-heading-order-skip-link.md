@@ -106,3 +106,41 @@ Scratch worktree at origin/main (41f616c), `npm ci`, then only the test change a
 - `src/components/Navbar.test.jsx`, the two lines tagged "landmarks are issue #5", changed to run with `region` on (`axeViolations(container.ownerDocument.body)` for the closed drawer, `axeViolations(document.body)` for the open drawer). Result on origin/main: `Tests 10 passed (10)`. They do not fail there, and cannot: the isolated Navbar render is entirely inside the AppBar's `<header>`, which was already a banner landmark on main, and the open drawer is a modal whose page behind it is aria-hidden. The old comment ("region fires on an isolated render with no landmarks") was also inaccurate: with a `container` context axe reports `region` as inapplicable, so it never fired. Kept on as a guard (it now actually evaluates `region`), not as a reproduction of the #5 defect.
 - `src/components/Lightbox.test.jsx` with `region` on: `Tests 1 passed` on origin/main, for the same reason (a modal dialog over an aria-hidden page). Kept on as a guard.
 - The #5 defect itself is reproduced by tests that did fail before the fix (commit 3fbe334, run against the pre-fix code): `landmarks.test.jsx` full-page axe reported `heading-order` and `region` (plus no main, no Primary nav, divs instead of sections, 19 headings instead of 11, no skip link); `Gallery.test.jsx` axe on `document.body` reported `region`; `Contact.test.jsx` axe reported `heading-order` and `region`.
+
+### Proof: review F1, six frozen assertions rewritten (2026-11-05)
+
+Approval: User approved rewriting these six assertions (option A) on 2026-11-05, relayed by the orchestrator, because they asserted the section scroll when an h2 exists, which leaves the About h2 off screen at 375x667.
+
+Rewritten, each from `section.scrollIntoView` to the section h2's `scrollIntoView` with the same `behavior`; the only setup change is `h2.scrollIntoView = vi.fn()` where each test builds its h2:
+- `src/test/navigation.test.js` lines 61 (smooth), 68 (auto), 121 (navigateToSection)
+- `src/components/NavbarSectionNav.test.jsx` lines 138 (desktop click), 199 (drawer item), plus the stale `display:none` comment in the md test (comment only)
+- `src/components/Hero.test.jsx` line 36
+
+Red against the production code at 3ac19e9 (`npx vitest run` on those files and the new `src/test/sectionScrollTarget.test.jsx`):
+
+```
+ FAIL  src/components/Hero.test.jsx > Hero Get Free Estimate > is a link to #contact that scrolls, sets the hash, and focuses the Contact h2
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+ FAIL  src/components/NavbarSectionNav.test.jsx > Navbar desktop nav > scrolls to the section, focuses its h2, and sets the hash on a click
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+ FAIL  src/components/NavbarSectionNav.test.jsx > Navbar drawer section focus > focuses the chosen section h2 once the drawer has closed and the page is not aria-hidden
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+ FAIL  src/test/navigation.test.js > scrollToSection > scrolls smoothly when motion is not reduced and returns the section
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+ FAIL  src/test/navigation.test.js > scrollToSection > jumps without animation under prefers-reduced-motion: reduce
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'auto' } ]
+Number of calls: 0
+ FAIL  src/test/navigation.test.js > navigateToSection > scrolls, sets the hash, and focuses the heading
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+ FAIL  src/test/sectionScrollTarget.test.jsx > section scroll target > scrolls only the h2, not the section, when the section has one
+AssertionError: expected "vi.fn()" to be called with arguments: [ { behavior: 'smooth' } ]
+Number of calls: 0
+      Tests  7 failed | 40 passed (47)
+```
+
+Weaker after the fix, left unchanged by decision (b): `src/components/Hero.test.jsx:48` and `src/components/NavbarSectionNav.test.jsx:180` assert the section is not scrolled on a modified click. Once the h2 is the scroll target they can no longer catch a wrongful takeover on their own (their `notPrevented` checks still do). The scroll axis is covered by the new `src/test/sectionScrollTarget.test.jsx` cases "desktop nav link: %s click leaves the h2 unscrolled" and "hero Get Free Estimate: %s click leaves the h2 unscrolled" (Ctrl, Meta, Shift, Alt, middle), which assert neither the h2 nor the section is scrolled. That file also adds the no-h2 fallback ("scrolls the section itself when it has no h2"). The fallback and modifier cases pass on the current code (already wired); the "scrolls only the h2" case is red above.

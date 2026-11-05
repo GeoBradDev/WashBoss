@@ -30,6 +30,7 @@ function addSections() {
     section.scrollIntoView = vi.fn()
     const h2 = document.createElement('h2')
     h2.tabIndex = -1
+    h2.scrollIntoView = vi.fn()
     h2.textContent = `${id} heading`
     section.appendChild(h2)
     document.body.appendChild(section)
@@ -135,7 +136,7 @@ describe('Navbar desktop nav', () => {
     const notPrevented = fireEvent.click(link)
 
     expect(notPrevented).toBe(false)
-    expect(sections.about.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    expect(headingOf(sections.about).scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
     expect(headingOf(sections.about)).toHaveFocus()
     expect(window.location.hash).toBe('#about')
   })
@@ -196,7 +197,7 @@ describe('Navbar drawer section focus', () => {
     const paper = await openDrawer(user)
     await user.click(within(paper).getByRole('button', { name: 'About' }))
 
-    expect(sections.about.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    expect(headingOf(sections.about).scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
     expect(window.location.hash).toBe('#about')
     await waitForDrawerClosed()
     await waitFor(() => expect(h2).toHaveFocus())
@@ -256,8 +257,9 @@ describe('Navbar drawer at the md breakpoint', () => {
     media.setWide(true)
     await waitForDrawerClosed()
 
-    // jsdom still applies the phone breakpoints to CSS, so the desktop nav is
-    // display:none here; the query includes hidden elements for that reason.
+    // Once the md query matches, the desktop links are shown (display: flex),
+    // so hidden: true here is not needed; NavbarMobileNav.test.jsx checks that
+    // the focused link has no display:none ancestor.
     const nav = screen.getByRole('navigation', { name: 'Primary', hidden: true })
     const services = within(nav).getByRole('link', { name: 'Services', hidden: true })
     await waitFor(() => expect(services).toHaveFocus())

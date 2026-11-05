@@ -24,6 +24,7 @@ function addSection(id, { heading = true } = {}) {
   if (heading) {
     const h2 = document.createElement('h2')
     h2.tabIndex = -1
+    h2.scrollIntoView = vi.fn()
     h2.textContent = id
     section.appendChild(h2)
   }
@@ -58,14 +59,14 @@ describe('scrollToSection', () => {
   it('scrolls smoothly when motion is not reduced and returns the section', () => {
     const section = addSection('about')
     expect(scrollToSection('#about')).toBe(section)
-    expect(section.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    expect(section.querySelector('h2').scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
   })
 
   it('jumps without animation under prefers-reduced-motion: reduce', () => {
     stubReducedMotion(true)
     const section = addSection('about')
     scrollToSection('#about')
-    expect(section.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto' })
+    expect(section.querySelector('h2').scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto' })
   })
 
   it('returns null when the section is missing', () => {
@@ -118,7 +119,7 @@ describe('navigateToSection', () => {
 
     navigateToSection('#gallery')
 
-    expect(section.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    expect(section.querySelector('h2').scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
     expect(window.location.hash).toBe('#gallery')
     expect(section.querySelector('h2')).toHaveFocus()
   })

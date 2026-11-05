@@ -11,6 +11,7 @@ function addContactSection() {
   section.scrollIntoView = vi.fn()
   const h2 = document.createElement('h2')
   h2.tabIndex = -1
+  h2.scrollIntoView = vi.fn()
   h2.textContent = 'Get in Touch'
   section.appendChild(h2)
   document.body.appendChild(section)
@@ -33,7 +34,7 @@ describe('Hero Get Free Estimate', () => {
     const notPrevented = fireEvent.click(link)
 
     expect(notPrevented).toBe(false)
-    expect(contact.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
+    expect(contact.querySelector('h2').scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' })
     expect(window.location.hash).toBe('#contact')
     expect(contact.querySelector('h2')).toHaveFocus()
   })
