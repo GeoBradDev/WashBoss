@@ -77,3 +77,13 @@ Out of scope, left to other issues:
 - Criterion 12: the PR's check list shows `CI`.
 - Criteria 9, 10: README review, `npm run lint`, `npm run build`, `find . -name '*.ts*' -not -path './node_modules/*'` empty.
 - Live drive: the preview build at mobile width shows the drawer at 240px with the theme background, no `paperprops` attribute in the DOM, and nav works.
+
+### Red output before the Drawer fix (commit f059160)
+
+```
+ FAIL  src/components/Navbar.test.jsx > Navbar mobile drawer > styles the drawer paper through slotProps.paper
+AssertionError: expected 'auto' to be '240px' // Object.is equality
+      Tests  1 failed | 2 passed (3)
+```
+
+After changing `PaperProps` to `slotProps.paper` in `Navbar.jsx`: `Tests  3 passed (3)`.

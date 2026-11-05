@@ -69,7 +69,7 @@ export default function Navbar() {
 
         {/* Mobile drawer */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}
-          PaperProps={{ sx: { backgroundColor: 'background.default', width: 240 } }}
+          slotProps={{ paper: { sx: { backgroundColor: 'background.default', width: 240 } } }}
         >
           <List sx={{ pt: 4 }}>
             {NAV_LINKS.map((link) => (
