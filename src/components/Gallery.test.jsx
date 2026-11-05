@@ -156,4 +156,15 @@ describe('Gallery', () => {
     // region fires on an isolated render with no landmarks; landmarks are issue #5.
     expect(await axeViolations(container, { region: { enabled: false } })).toEqual([])
   })
+
+  it('keeps the lightbox open while Enter is held on a thumbnail', async () => {
+    const user = userEvent.setup()
+    renderWithTheme(<Gallery />)
+
+    screen.getByRole('button', { name: thumbName(1) }).focus()
+    await user.keyboard('{Enter>6/}')
+
+    expect(screen.getByText('2 / 22')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
 })
