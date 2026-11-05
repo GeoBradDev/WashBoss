@@ -66,4 +66,14 @@ describe('Navbar drawer focus return', () => {
     expect(hamburger).toHaveFocus()
     expect(hiddenAncestorsAtFocus.at(-1)).toBeNull()
   })
+
+  it('returns focus to the menu button only after the page is no longer aria-hidden (backdrop)', async () => {
+    const user = userEvent.setup()
+    const { hamburger, hiddenAncestorsAtFocus } = await closeAndRecordHiddenAncestor(user, () =>
+      user.click(document.querySelector('.MuiBackdrop-root')),
+    )
+
+    expect(hamburger).toHaveFocus()
+    expect(hiddenAncestorsAtFocus.at(-1)).toBeNull()
+  })
 })

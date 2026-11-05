@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen, within, waitFor } from '@testing-library/react'
+import { screen, within, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { renderWithTheme } from '../test/renderWithTheme'
@@ -167,5 +167,18 @@ describe('Navbar accessibility', () => {
 
     // region fires on an isolated render with no landmarks; landmarks are issue #5.
     expect(await axeViolations(document.body, { region: { enabled: false } })).toEqual([])
+  })
+
+  it('scrolls to the top on a logo click without following the link or changing the hash', () => {
+    vi.mocked(window.scrollTo).mockClear()
+    const hashBefore = window.location.hash
+    renderPhoneNavbar()
+
+    const logo = screen.getByRole('link', { name: 'Wash Boss Pressure Washing, back to top' })
+    const notPrevented = fireEvent.click(logo)
+
+    expect(notPrevented).toBe(false)
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+    expect(window.location.hash).toBe(hashBefore)
   })
 })
