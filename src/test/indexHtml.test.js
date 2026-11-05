@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync, statSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // index.html ships the favicon links and the LocalBusiness JSON-LD that search
@@ -26,10 +26,15 @@ function collectStrings(value, out = []) {
   return out
 }
 
-function localFileFor(rootRelativePath) {
-  const clean = rootRelativePath.split(/[?#]/)[0]
-  if (clean.startsWith('/src/')) return join(repoRoot, clean)
-  return join(publicDir, clean)
+// Resolve a URL path against baseDir. Returns null when the path escapes
+// baseDir, names baseDir itself, or is not a regular file.
+function resolveLocal(urlPath, baseDir) {
+  const clean = decodeURIComponent(urlPath.split(/[?#]/)[0])
+  const file = join(baseDir, clean)
+  const rel = relative(baseDir, file)
+  if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return null
+  if (!existsSync(file) || !statSync(file).isFile()) return null
+  return file
 }
 
 function pngSize(path) {
@@ -58,7 +63,7 @@ describe('index.html', () => {
       type: l.getAttribute('type'),
       sizes: l.getAttribute('sizes'),
     }))
-    expect(links).toContainEqual(expect.objectContaining({ rel: 'icon', href: '/favicon.ico' }))
+    expect(links).toContainEqual(expect.objectContaining({ rel: 'icon', href: '/favicon.ico', sizes: '32x32' }))
     expect(links).toContainEqual(
       expect.objectContaining({ rel: 'icon', href: '/icon-192.png', type: 'image/png', sizes: '192x192' }),
     )
@@ -67,11 +72,14 @@ describe('index.html', () => {
 
   it('only references local assets that exist', () => {
     const missing = []
-    for (const el of doc.querySelectorAll('[href], [src]')) {
-      for (const attr of ['href', 'src']) {
+    for (const el of doc.querySelectorAll('[href], [src], [content]')) {
+      for (const attr of ['href', 'src', 'content']) {
         const value = el.getAttribute(attr)
         if (value && value.startsWith('/') && !value.startsWith('//')) {
-          if (!existsSync(localFileFor(value))) missing.push(value)
+          // Only the module entry script comes from the source tree (Vite bundles it);
+          // everything else, including absolute site URLs below, must be a file in public/.
+          const isModuleEntry = attr === 'src' && el.matches('script[type="module"]')
+          if (!resolveLocal(value, isModuleEntry ? repoRoot : publicDir)) missing.push(value)
         }
       }
     }
@@ -84,8 +92,7 @@ describe('index.html', () => {
       if (!value.startsWith(`${SITE}/`)) continue
       const path = value.slice(SITE.length)
       if (path === '/') continue
-      const file = localFileFor(path)
-      if (!existsSync(file) || !statSync(file).isFile()) missing.push(value)
+      if (!resolveLocal(path, publicDir)) missing.push(value)
     }
     expect(missing).toEqual([])
   })

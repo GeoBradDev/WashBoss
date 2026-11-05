@@ -65,3 +65,43 @@ Not committed: the one-off generator script, kept in the run's scratch directory
 - Criterion 8: gate output.
 - Criterion 9: live drive on `vite preview` with Chrome DevTools: network log statuses and content types, screenshot of the tab icon.
 - Criterion 10: validator output.
+
+### Frozen test rewrite
+
+Approval: "orchestrator, under the user's delegation, strengthen-only". Reason: review found four gaps in the frozen `src/test/indexHtml.test.js`. Every existing assertion is kept; the rewrite only adds or tightens:
+
+- F1: the favicon link assertion now also requires `sizes="32x32"`.
+- F2: root-relative `content` attribute values (for example `og:image content="/nope.jpeg"`) are now checked, alongside `href` and `src`.
+- F3: a root-relative path must resolve inside its base directory and be a regular file, so `href="/"` (the `public/` directory) and `href="/../package.json"` (escapes `public/`) now fail.
+- F4: absolute `https://washbosspw.com/...` URLs resolve only under `public/`, and only the `src` of a `script[type=module]` maps to the repo source tree, so `https://washbosspw.com/src/main.jsx` (a 404 on Pages) now fails.
+
+Red on origin/main (86269b5, rewritten test copied into a scratch worktree), 6 of 6 failing for the expected reasons:
+
+```
+× does not reference vite.svg
+  AssertionError: expected '<!doctype html>...' not to match /vite\.svg/
+× links the favicon, the 192px icon and the apple touch icon
+  AssertionError: expected [ { rel: 'icon', ... } ] to deep equally contain ObjectContaining{ "href": "/favicon.ico", ... }
+× only references local assets that exist
+  AssertionError: expected [ '/vite.svg' ] to deeply equal []
+× ships icon files with the declared dimensions
+  Error: ENOENT: no such file or directory, open '.../public/favicon.ico'
+× is a LocalBusiness without email, sameAs or geo
+  AssertionError: expected { ...(15) } to not have property "email"
+× serves St. Louis City, St. Louis County and St. Charles County in Missouri
+  AssertionError: expected { '@type': 'State', ...(1) } to deeply equal [ { ...(3) }, { ...(3) }, { ...(3) } ]
+Tests  6 failed (6)
+```
+
+Mutation check (scratch copy of the fixed `index.html` and icons; baseline 6 of 6 pass), each mutation fails exactly one test:
+
+| Mutation | Failing test | Reported |
+|---|---|---|
+| F1: drop `sizes="32x32"` from the favicon link | links the favicon, ... | ObjectContaining not found |
+| F2: `og:image content="/nope.jpeg"` | only references local assets that exist | `['/nope.jpeg']` |
+| F3: canonical `href="/../package.json"` | only references local assets that exist | `['/../package.json']` |
+| F3: canonical `href="/"` | only references local assets that exist | `['/']` |
+| F4: JSON-LD `image` `https://washbosspw.com/src/main.jsx` | only references local assets that exist | `[ Array(1) ]` (that URL) |
+| F4: canonical `href="/src/main.jsx"` (not a module script) | only references local assets that exist | `['/src/main.jsx']` |
+
+Green on the issue branch with no production change (`index.html` and `public/` untouched by the rewrite).
