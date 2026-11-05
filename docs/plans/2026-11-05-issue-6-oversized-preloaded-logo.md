@@ -93,3 +93,7 @@ Not changed: `public/SCSL.jpeg`, favicons, `src/test/indexHtml.test.js`, README 
 - Criterion 8: `git diff --stat origin/main -- public/SCSL.jpeg public/favicon.ico public/icon-192.png public/apple-touch-icon.png src/test/indexHtml.test.js` is empty, and the frozen test passes in the gate.
 - Criterion 10: gate output and `ls dist/` for the new files.
 - Criterion 11: Lighthouse reports, network log, trace figures, and screenshots from the live drive, before and after.
+
+### Red run (before any production change)
+
+`npx vitest run src/test/logo.test.jsx` on the plan commit: 18 failed (18). Each failure is the missing feature: the six `logo-N.webp` files do not exist (`expected false to be true`), the three logo imgs have no `sizes`/`srcset` (`expected null to be '56px'`, `'80px'`, `'(min-width: 900px) 220px, 160px'`), the DPR and byte budget checks find no `srcset` (`expected null not to be null`), `index.html` still names `SCSL.jpeg` and its preload has no `type` (`expected null to be 'image/webp'`), and `og:image` and JSON-LD `logo` still point at `https://washbosspw.com/SCSL.jpeg`.
