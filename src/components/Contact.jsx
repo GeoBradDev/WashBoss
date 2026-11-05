@@ -213,6 +213,9 @@ export default function Contact() {
                   <TextField
                     fullWidth multiline rows={4} label="Additional Details" name="message"
                     id="contact-message"
+                    // A plain textarea: MUI's autosize version adds a shadow textarea
+                    // with no id or name, which Chrome flags as a form field issue.
+                    slotProps={{ input: { inputComponent: 'textarea' } }}
                     variant="outlined"
                     placeholder="Anything else we should know about your project?"
                   />
