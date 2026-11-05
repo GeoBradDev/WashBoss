@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../test/renderWithTheme'
 import { axeViolations } from '../test/axe'
@@ -166,5 +166,56 @@ describe('Gallery', () => {
 
     expect(screen.getByText('2 / 22')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
+
+  // Safari does not focus a button on click, so the lightbox cannot rely on
+  // the previously focused element to find the thumbnail that opened it.
+  // Each close path must still return focus there, after the page behind the
+  // dialog is no longer aria-hidden.
+  async function openWithoutFocusAndClose(close) {
+    const user = userEvent.setup()
+    renderWithTheme(<Gallery />)
+    const thumb = screen.getByRole('button', { name: thumbName(8) })
+    const hiddenAncestorsAtFocus = []
+    thumb.addEventListener('focus', () => {
+      const hidden = thumb.closest('[aria-hidden="true"]')
+      hiddenAncestorsAtFocus.push(hidden ? hidden.tagName : null)
+    })
+
+    fireEvent.click(thumb)
+    await screen.findByText('9 / 22')
+    await close(user)
+
+    await waitFor(() => {
+      expect(screen.queryByText('9 / 22')).not.toBeInTheDocument()
+    })
+    return { thumb, hiddenAncestorsAtFocus }
+  }
+
+  it('returns focus to a thumbnail opened without focus when Escape closes the lightbox', async () => {
+    const { thumb, hiddenAncestorsAtFocus } = await openWithoutFocusAndClose((user) =>
+      user.keyboard('{Escape}'),
+    )
+
+    expect(thumb).toHaveFocus()
+    expect(hiddenAncestorsAtFocus).toEqual([null])
+  })
+
+  it('returns focus to a thumbnail opened without focus when the Close button closes the lightbox', async () => {
+    const { thumb, hiddenAncestorsAtFocus } = await openWithoutFocusAndClose((user) =>
+      user.click(screen.getByRole('button', { name: 'Close' })),
+    )
+
+    expect(thumb).toHaveFocus()
+    expect(hiddenAncestorsAtFocus).toEqual([null])
+  })
+
+  it('returns focus to a thumbnail opened without focus when the backdrop closes the lightbox', async () => {
+    const { thumb, hiddenAncestorsAtFocus } = await openWithoutFocusAndClose((user) =>
+      user.click(document.querySelector('.MuiBackdrop-root')),
+    )
+
+    expect(thumb).toHaveFocus()
+    expect(hiddenAncestorsAtFocus).toEqual([null])
   })
 })
