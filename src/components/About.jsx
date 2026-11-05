@@ -2,12 +2,16 @@ import { Box, Container, Grid, Typography, Divider } from '@mui/material'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import StarIcon from '@mui/icons-material/Star'
 import HandshakeIcon from '@mui/icons-material/Handshake'
+import { sectionScrollSx } from '../navigation'
 
 export default function About() {
   return (
     <Box
+      component="section"
       id="about"
+      aria-labelledby="about-heading"
       sx={{
+        ...sectionScrollSx,
         py: 10,
         backgroundColor: '#0d0d0d',
         borderTop: '1px solid #222',
@@ -38,10 +42,10 @@ export default function About() {
                 <LocalFireDepartmentIcon sx={{ fontSize: 100, color: 'primary.main' }} />
               </Box>
 
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
+              <Typography variant="h4" component="p" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
                 Firefighter Owned
               </Typography>
-              <Typography variant="h5" sx={{ color: 'text.secondary', fontWeight: 400 }}>
+              <Typography variant="h5" component="p" sx={{ color: 'text.secondary', fontWeight: 400 }}>
                 & Operated
               </Typography>
 
@@ -62,7 +66,12 @@ export default function About() {
 
           {/* Right: Story */}
           <Grid size={{ xs: 12, md: 7 }}>
-            <Typography variant="h2" sx={{ mb: 3, color: 'primary.main' }}>
+            <Typography
+              variant="h2"
+              id="about-heading"
+              tabIndex={-1}
+              sx={{ mb: 3, color: 'primary.main' }}
+            >
               About Wash Boss
             </Typography>
 
@@ -96,7 +105,7 @@ export default function About() {
                 py: 1,
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>
+              <Typography variant="h6" component="p" sx={{ fontWeight: 700, color: 'white' }}>
                 D&apos;Marco Shivers
               </Typography>
               <Typography variant="body2" sx={{ color: 'primary.main' }}>

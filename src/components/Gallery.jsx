@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Box, ButtonBase, Container, Grid, Typography } from '@mui/material'
 import Lightbox from './Lightbox'
+import { sectionScrollSx } from '../navigation'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -72,9 +73,19 @@ export default function Gallery() {
     setOpenIndex((i) => (i + 1) % PHOTOS.length)
 
   return (
-    <Box id="gallery" sx={{ py: 10, backgroundColor: 'background.default' }}>
+    <Box
+      component="section"
+      id="gallery"
+      aria-labelledby="gallery-heading"
+      sx={{ py: 10, backgroundColor: 'background.default', ...sectionScrollSx }}
+    >
       <Container maxWidth="lg">
-        <Typography variant="h2" sx={{ textAlign: 'center', mb: 1, color: 'primary.main' }}>
+        <Typography
+          variant="h2"
+          id="gallery-heading"
+          tabIndex={-1}
+          sx={{ textAlign: 'center', mb: 1, color: 'primary.main' }}
+        >
           Our Work
         </Typography>
         <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary', mb: 6 }}>

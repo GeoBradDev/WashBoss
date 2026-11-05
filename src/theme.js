@@ -39,6 +39,30 @@ const theme = createTheme({
     h4: { fontWeight: 600 },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        // Native fragment jumps (the skip link) animate only for users who
+        // have not asked for reduced motion.
+        '@media (prefers-reduced-motion: no-preference)': {
+          html: { scrollBehavior: 'smooth' },
+        },
+        // Section headings (and the contact section in its success state) take
+        // focus from in-page nav through tabIndex -1. No ring after a mouse
+        // click; the shared ring for keyboard users.
+        'h2[tabindex="-1"], section[tabindex="-1"]': {
+          '&:focus': { outline: 'none' },
+          '&:focus-visible': focusOutline(theme),
+        },
+      }),
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          // Inset so the drawer paper's edge does not clip the ring.
+          '&.Mui-focusVisible': { ...focusOutline(theme), outlineOffset: -3 },
+        }),
+      },
+    },
     MuiButton: {
       // The focus ripple is currentColor at 0.3 opacity, which darkens the orange
       // behind the near-black label below 4.5:1. The outline replaces it.

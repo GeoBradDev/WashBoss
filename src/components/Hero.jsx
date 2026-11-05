@@ -2,12 +2,9 @@ import { Box, Typography, Button, Stack } from '@mui/material'
 import PhoneIcon from '@mui/icons-material/Phone'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import { logoSrc, logoSrcSet, HERO_LOGO_SIZES } from '../logo'
+import { isPlainLeftClick, navigateToSection } from '../navigation'
 
 export default function Hero() {
-  const handleScrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <Box
       id="hero"
@@ -72,6 +69,7 @@ export default function Hero() {
 
       <Typography
         variant="h5"
+        component="p"
         sx={{ color: 'text.secondary', mb: 1, maxWidth: 600, fontWeight: 400 }}
       >
         Firefighter-Owned & Operated. Licensed & Insured.
@@ -102,7 +100,13 @@ export default function Hero() {
           color="primary"
           size="large"
           startIcon={<AssignmentIcon />}
-          onClick={() => handleScrollTo('contact')}
+          component="a"
+          href="#contact"
+          onClick={(e) => {
+            if (!isPlainLeftClick(e)) return
+            e.preventDefault()
+            navigateToSection('#contact')
+          }}
           sx={{ px: 4, py: 1.5, fontSize: '1.1rem' }}
         >
           Get Free Estimate
