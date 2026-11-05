@@ -45,7 +45,7 @@ Not committed: the one-off generator script, kept in the run's scratch directory
 ## Order of work
 
 1. Red test: write `src/test/indexHtml.test.js`. It reads `index.html` and `public/` with `node:fs` (same pattern as `cname.test.js`), parses the HTML with jsdom's `DOMParser` (the test environment is jsdom) or regex, and asserts criteria 2, 3 and 4. Run it, record the failing output, commit it alone (`test: ...`).
-2. Generate the icons with a scratch Python Pillow script: find the bounding box of non-black pixels in `SCSL.jpeg` (the emblem), take a square crop centered on it with a small margin, flatten onto black, resize with LANCZOS to 180 and 192 (PNG, optimized, RGB) and to 32 (ICO with a single 32x32 image, or 16 and 32). Inspect each output visually at 1x and enlarged. Report byte sizes.
+2. Generate the icons with a scratch Python Pillow script: find the bounding box of non-black pixels in `SCSL.jpeg` (the emblem), ignoring a 20px border band because the JPEG has a faint light frame at its edges that otherwise makes the box the whole image, take a square crop centered on it with a small margin, flatten onto black, resize with LANCZOS to 180 and 192 (PNG, optimized, quantized to a 256-colour palette because the RGB 192px PNG came out at 40.9 KB, over the 40 KB target, and the palette version is visually identical side by side at about 16 KB) and to 32 (ICO with a single 32x32 image). Inspect each output visually at 1x and enlarged. Report byte sizes.
 3. Edit `index.html`: replace the vite.svg link with the three icon links; in the JSON-LD remove `email` and `sameAs`, replace `areaServed`. Touch nothing else.
 4. Run the test green, then the full gate, then the live drive. Commit (`fix: ...`).
 

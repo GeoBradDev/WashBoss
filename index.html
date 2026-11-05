@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" as="image" href="/SCSL.jpeg" fetchpriority="high" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wash Boss Pressure Washing | St. Louis, MO | Firefighter-Owned</title>
@@ -38,7 +40,6 @@
       "description": "Firefighter-owned and operated pressure washing, soft washing, concrete sealing, and paver sealing for residential and commercial properties in St. Louis, MO.",
       "url": "https://washbosspw.com",
       "telephone": "+16366148371",
-      "email": "",
       "image": "https://washbosspw.com/SCSL.jpeg",
       "logo": "https://washbosspw.com/SCSL.jpeg",
       "address": {
@@ -47,10 +48,23 @@
         "addressRegion": "MO",
         "addressCountry": "US"
       },
-      "areaServed": {
-        "@type": "State",
-        "name": "St. Louis Metro Area, Missouri"
-      },
+      "areaServed": [
+        {
+          "@type": "AdministrativeArea",
+          "name": "St. Louis City",
+          "containedInPlace": { "@type": "State", "name": "Missouri" }
+        },
+        {
+          "@type": "AdministrativeArea",
+          "name": "St. Louis County",
+          "containedInPlace": { "@type": "State", "name": "Missouri" }
+        },
+        {
+          "@type": "AdministrativeArea",
+          "name": "St. Charles County",
+          "containedInPlace": { "@type": "State", "name": "Missouri" }
+        }
+      ],
       "priceRange": "$$",
       "openingHoursSpecification": [
         {
@@ -69,8 +83,7 @@
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Concrete Sealing" } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Paver Sealing" } }
         ]
-      },
-      "sameAs": []
+      }
     }
     </script>
   </head>
