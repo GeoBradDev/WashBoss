@@ -24,7 +24,6 @@ npm ci
 | `npm test` | Run the Vitest suite once (jsdom and Testing Library) and exit. |
 | `npm run build` | Build the production site into `dist/`. |
 | `npm run preview` | Serve the built `dist/` locally to check a production build. |
-| `npm run deploy` | Build and publish `dist/` to the `gh-pages` branch. |
 
 Tests live next to the components they cover (`src/components/*.test.jsx`). Shared test setup is in `src/test/`.
 
@@ -34,17 +33,17 @@ The contact form posts to [Formspree](https://formspree.io) through `@formspree/
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs `npm ci`, `npm run lint`, `npm test`, and `npm run build` on every pull request and on pushes to `main`, using the Node version from `.nvmrc`.
+`.github/workflows/ci.yml` runs `npm ci`, `npm run lint`, `npm test`, and `npm run build` on every pull request and on pushes to `main`, using the Node version from `.nvmrc`. On `main` only, the same workflow also deploys the site (see Deploying).
 
 ## Deploying
 
-Deploys are manual. From an up to date `main`:
+Every push to `main` deploys the site from CI. In `.github/workflows/ci.yml`, the `CI` job uploads the `dist/` it just linted, tested, and built as a GitHub Pages artifact, and the `Deploy` job publishes it with `actions/deploy-pages` only after `CI` passes. Pull requests run `CI` but never deploy. The GitHub Pages source must be set to "GitHub Actions".
 
-```sh
-npm run deploy
-```
+To redeploy the current `main` without a new commit, run the workflow from the Actions tab ("Run workflow" on `main`). Re-running only a failed `Deploy` job works while its Pages artifact is kept (one day); after that, use "Run workflow".
 
-This runs the build (`predeploy`) and pushes `dist/` to the `gh-pages` branch with the `gh-pages` package. GitHub Pages serves that branch, and the custom domain comes from `public/CNAME`.
+To roll back, revert the bad commit on `main` (through a pull request, like any other change). The push of the revert deploys the previous version.
+
+The custom domain (`washbosspw.com`) is set in the repository's Pages settings. `public/CNAME` records the same domain and is copied into `dist/` by the build, but Pages ignores it when deploying from Actions.
 
 ## Agent workflows
 
