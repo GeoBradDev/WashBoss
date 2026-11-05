@@ -31,7 +31,7 @@ export default function Footer() {
 
         <Divider sx={{ borderColor: '#1a1a1a', mb: 3 }} />
 
-        <Typography variant="body2" sx={{ color: '#555', textAlign: 'center' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
           &copy; {new Date().getFullYear()} Wash Boss Pressure Washing LLC. All rights reserved.
         </Typography>
       </Container>
