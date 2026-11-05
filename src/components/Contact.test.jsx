@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../test/renderWithTheme'
+import { axeViolations } from '../test/axe'
 import Contact from './Contact'
 
 function mockFetchResponse(status, body) {
@@ -65,13 +66,15 @@ describe('Contact form', () => {
     expect(init.method).toBe('POST')
   })
 
-  it('shows the field-level error next to Name when Formspree rejects an empty name', async () => {
+  it('shows the field-level error next to Name when Formspree rejects the name', async () => {
     mockFetchResponse(422, {
       errors: [{ field: 'name', code: 'REQUIRED_FIELD_EMPTY', message: 'should be filled out' }],
     })
     const user = userEvent.setup()
     renderWithTheme(<Contact />)
 
+    await user.type(screen.getByLabelText(/Your Name/), 'Test Customer')
+    await user.type(screen.getByLabelText('Phone Number'), '5555550100')
     await user.click(screen.getByRole('button', { name: 'Request Free Estimate' }))
 
     await screen.findByText('Name should be filled out')
@@ -150,6 +153,8 @@ describe('Contact form', () => {
       const user = userEvent.setup()
       renderWithTheme(<Contact />)
 
+      await user.type(screen.getByLabelText(/Your Name/), 'Test Customer')
+      await user.type(screen.getByLabelText('Phone Number'), '5555550100')
       await user.click(submitButton())
 
       expect(await screen.findByText('Name should be filled out')).toBeInTheDocument()
@@ -206,6 +211,375 @@ describe('Contact form', () => {
       // A new element, so assistive technology announces the second failure.
       expect(secondAlert).not.toBe(firstAlert)
       expect(screen.getByLabelText(/Your Name/)).toHaveValue('Test Customer')
+    })
+  })
+
+  describe('client-side validation (#3)', () => {
+    const EITHER = 'Enter a phone number or an email. Either one is enough.'
+    const NAME_ERROR = 'Enter your name.'
+    const EMAIL_FORMAT = 'Enter a valid email address, like name@example.com.'
+    const DEFAULT_HINT = 'Phone or email required.'
+
+    const nameField = () => screen.getByRole('textbox', { name: /Your Name/ })
+    const phoneField = () => screen.getByRole('textbox', { name: 'Phone Number' })
+    const emailField = () => screen.getByRole('textbox', { name: 'Email' })
+
+    function stubFetch() {
+      const fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+      return fetchMock
+    }
+
+    it('blocks an empty submit, marks Name, Phone, and Email invalid, and focuses Name', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.click(submitButton())
+
+      expect(nameField()).toBeInvalid()
+      expect(nameField()).toHaveAccessibleDescription(NAME_ERROR)
+      expect(phoneField()).toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(EITHER)
+      expect(emailField()).toBeInvalid()
+      expect(emailField()).toHaveAccessibleDescription(EITHER)
+      expect(nameField()).toHaveFocus()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('blocks a submit with only a name and asks for a phone or email', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.click(submitButton())
+
+      expect(nameField()).not.toBeInvalid()
+      expect(phoneField()).toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(EITHER)
+      expect(emailField()).toBeInvalid()
+      expect(emailField()).toHaveAccessibleDescription(EITHER)
+      expect(phoneField()).toHaveFocus()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('treats a whitespace-only phone and email as empty', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '   ')
+      await user.type(emailField(), '   ')
+      await user.click(submitButton())
+
+      expect(phoneField()).toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(EITHER)
+      expect(emailField()).toBeInvalid()
+      expect(emailField()).toHaveAccessibleDescription(EITHER)
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('blocks a submit with a phone and email but no name, and focuses Name', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(phoneField(), '5555550100')
+      await user.type(emailField(), 'test@example.com')
+      await user.click(submitButton())
+
+      expect(nameField()).toBeInvalid()
+      expect(nameField()).toHaveAccessibleDescription(NAME_ERROR)
+      expect(phoneField()).not.toBeInvalid()
+      expect(emailField()).not.toBeInvalid()
+      expect(nameField()).toHaveFocus()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('blocks an invalid email even when a phone is given, and focuses Email', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.type(emailField(), 'not-an-email')
+      await user.click(submitButton())
+
+      expect(emailField()).toBeInvalid()
+      expect(emailField()).toHaveAccessibleDescription(EMAIL_FORMAT)
+      expect(nameField()).not.toBeInvalid()
+      expect(phoneField()).not.toBeInvalid()
+      expect(emailField()).toHaveFocus()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('clears errors as the user types after a failed submit', async () => {
+      stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.click(submitButton())
+      expect(nameField()).toBeInvalid()
+
+      await user.type(nameField(), 'Test Customer')
+      expect(nameField()).not.toBeInvalid()
+      expect(nameField()).not.toHaveAccessibleDescription()
+      expect(phoneField()).toBeInvalid()
+
+      await user.type(phoneField(), '5555550100')
+      expect(phoneField()).not.toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(DEFAULT_HINT)
+      expect(emailField()).not.toBeInvalid()
+      expect(emailField()).toHaveAccessibleDescription(DEFAULT_HINT)
+    })
+
+    it('shows no errors before the first submit and states the phone-or-email rule', () => {
+      renderWithTheme(<Contact />)
+
+      expect(nameField()).not.toHaveAttribute('aria-invalid', 'true')
+      expect(phoneField()).not.toHaveAttribute('aria-invalid', 'true')
+      expect(emailField()).not.toHaveAttribute('aria-invalid', 'true')
+      expect(phoneField()).toHaveAccessibleDescription(DEFAULT_HINT)
+      expect(emailField()).toHaveAccessibleDescription(DEFAULT_HINT)
+    })
+
+    it('submits with a name and email only and sends the email and an empty honeypot', async () => {
+      const fetchMock = mockFetchResponse(200, { next: 'https://formspree.io/thanks', ok: true })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(emailField(), 'test@example.com')
+      await user.click(submitButton())
+
+      expect(await screen.findByText(/Message sent!/)).toBeInTheDocument()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(String(url)).toContain('formspree.io/f/xqedwlwr')
+      expect(init.method).toBe('POST')
+      expect(init.body.get('email')).toBe('test@example.com')
+      expect(init.body.get('_gotcha')).toBe('')
+    })
+
+    it('submits with a name and phone only and sends no email and an empty honeypot', async () => {
+      const fetchMock = mockFetchResponse(200, { next: 'https://formspree.io/thanks', ok: true })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+
+      expect(await screen.findByText(/Message sent!/)).toBeInTheDocument()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(String(url)).toContain('formspree.io/f/xqedwlwr')
+      const body = init.body
+      expect(body.get('name')).toBe('Test Customer')
+      expect(body.get('phone')).toBe('5555550100')
+      expect(body.has('email')).toBe(false)
+      expect(body.get('_gotcha')).toBe('')
+      for (const key of ['address', 'service', 'message']) {
+        expect(body.has(key)).toBe(true)
+      }
+    })
+
+    it('gives every field an id, a name, and an autocomplete token', () => {
+      const { container } = renderWithTheme(<Contact />)
+      const expected = [
+        { id: 'contact-name', name: 'name', autocomplete: 'name' },
+        { id: 'contact-phone', name: 'phone', autocomplete: 'tel', type: 'tel', inputmode: 'tel' },
+        { id: 'contact-email', name: 'email', autocomplete: 'email', type: 'email' },
+        { id: 'contact-address', name: 'address', autocomplete: 'street-address' },
+        { id: 'contact-message', name: 'message' },
+      ]
+      for (const { id, ...attrs } of expected) {
+        const el = container.querySelector(`#${id}`)
+        expect(el, id).not.toBeNull()
+        for (const [attr, value] of Object.entries(attrs)) {
+          expect(el.getAttribute(attr), `${id} ${attr}`).toBe(value)
+        }
+      }
+      expect(emailField()).toHaveAttribute('id', 'contact-email')
+      expect(screen.getByText('Email', { selector: 'label' })).toBeInTheDocument()
+
+      const service = container.querySelector('input[name="service"]')
+      expect(service).not.toBeNull()
+      expect(container.querySelector('#contact-service')).not.toBeNull()
+    })
+
+    it('gives every form control in the form an id or a name, so Chrome reports no form field issue', () => {
+      const { container } = renderWithTheme(<Contact />)
+      const form = container.querySelector('form')
+      const unnamed = [...form.querySelectorAll('input, textarea, select')]
+        .filter((el) => !el.id && !el.name)
+        .map((el) => el.outerHTML.slice(0, 80))
+      expect(unnamed).toEqual([])
+    })
+
+    it('includes a hidden Formspree honeypot that is not a textbox and is skipped by Tab', async () => {
+      const user = userEvent.setup()
+      const { container } = renderWithTheme(<Contact />)
+
+      const gotcha = container.querySelector('input[name="_gotcha"]')
+      expect(gotcha).not.toBeNull()
+      expect(gotcha).toHaveAttribute('id', 'contact-gotcha')
+      expect(gotcha).toHaveAttribute('type', 'text')
+      expect(gotcha).toHaveAttribute('tabindex', '-1')
+      expect(gotcha).toHaveAttribute('aria-hidden', 'true')
+      expect(gotcha).toHaveAttribute('autocomplete', 'off')
+      expect(gotcha).not.toHaveAttribute('style')
+      expect(gotcha).not.toBeVisible()
+      expect(screen.getAllByRole('textbox')).not.toContain(gotcha)
+
+      nameField().focus()
+      const visited = []
+      for (let i = 0; i < 10 && document.activeElement !== submitButton(); i += 1) {
+        await user.tab()
+        visited.push(document.activeElement)
+      }
+      expect(visited).toContain(submitButton())
+      expect(visited).not.toContain(gotcha)
+    })
+
+    it('clears the general alert when a later submit is blocked in the browser', async () => {
+      const fetchMock = mockFetchReject(new TypeError('Failed to fetch'))
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+      expect(await screen.findByRole('alert')).toHaveTextContent('(636) 614-8371')
+
+      await user.clear(phoneField())
+      await user.click(submitButton())
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(phoneField()).toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(EITHER)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('clears an old Formspree 422 Name message when a later submit is blocked in the browser', async () => {
+      const fetchMock = mockFetchResponse(422, {
+        errors: [{ field: 'name', code: 'REQUIRED_FIELD_EMPTY', message: 'should be filled out' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+      expect(await screen.findByText('Name should be filled out')).toBeInTheDocument()
+
+      await user.clear(phoneField())
+      await user.click(submitButton())
+
+      expect(screen.queryByText('Name should be filled out')).not.toBeInTheDocument()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(phoneField()).toBeInvalid()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows a Formspree 422 email error inline in the Email cell', async () => {
+      mockFetchResponse(422, {
+        errors: [{ field: 'email', code: 'TYPE_EMAIL', message: 'should be an email' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.type(emailField(), 'test@example.com')
+      await user.click(submitButton())
+
+      await screen.findByText('Email should be an email')
+      const emailCell = emailField().closest('.MuiGrid-root')
+      expect(within(emailCell).getByText('Email should be an email')).toBeInTheDocument()
+      const phoneCell = phoneField().closest('.MuiGrid-root')
+      expect(within(phoneCell).queryByText('Email should be an email')).not.toBeInTheDocument()
+    })
+
+    it('shows a Formspree 422 phone error inline in the Phone cell', async () => {
+      mockFetchResponse(422, {
+        errors: [{ field: 'phone', code: 'TYPE_TEXT', message: 'is not valid' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+
+      await screen.findByText('Phone is not valid')
+      const phoneCell = phoneField().closest('.MuiGrid-root')
+      expect(within(phoneCell).getByText('Phone is not valid')).toBeInTheDocument()
+    })
+
+    it('sends the email trimmed when it ends with a non-breaking space', async () => {
+      const fetchMock = mockFetchResponse(200, { next: 'https://formspree.io/thanks', ok: true })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(emailField(), 'test@example.com\u00a0')
+      expect(emailField()).toHaveValue('test@example.com\u00a0')
+      await user.click(submitButton())
+
+      expect(await screen.findByText(/Message sent!/)).toBeInTheDocument()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock.mock.calls[0][1].body.get('email')).toBe('test@example.com')
+    })
+
+    it('blocks a whitespace-only name even with a valid phone', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), '   ')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+
+      expect(nameField()).toBeInvalid()
+      expect(nameField()).toHaveAccessibleDescription(NAME_ERROR)
+      expect(nameField()).toHaveFocus()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('skips the honeypot with Shift+Tab from Name and Tab from the element before the form', async () => {
+      const user = userEvent.setup()
+      const { container } = renderWithTheme(<Contact />)
+      const gotcha = container.querySelector('input[name="_gotcha"]')
+      const callNow = screen.getByRole('link', { name: /Call Now/ })
+
+      nameField().focus()
+      await user.tab({ shift: true })
+      expect(document.activeElement).not.toBe(gotcha)
+      expect(callNow).toHaveFocus()
+
+      await user.tab()
+      expect(document.activeElement).not.toBe(gotcha)
+      expect(nameField()).toHaveFocus()
+    })
+
+    it('has no axe violations before and after a failed submit', async () => {
+      stubFetch()
+      const user = userEvent.setup()
+      const { container } = renderWithTheme(<Contact />)
+      // heading-order (h2 to h4 in the left column) predates #3 and is out of scope.
+      const rules = { region: { enabled: false }, 'heading-order': { enabled: false } }
+
+      expect(emailField()).toBeInTheDocument()
+      expect(await axeViolations(container, rules)).toEqual([])
+
+      await user.click(submitButton())
+      expect(nameField()).toBeInvalid()
+      expect(await axeViolations(container, rules)).toEqual([])
     })
   })
 })
