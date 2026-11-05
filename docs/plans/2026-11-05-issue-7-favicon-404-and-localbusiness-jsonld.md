@@ -68,14 +68,15 @@ Not committed: the one-off generator script, kept in the run's scratch directory
 
 ### Frozen test rewrite
 
-Approval: "orchestrator, under the user's delegation, strengthen-only". Reason: review found four gaps in the frozen `src/test/indexHtml.test.js`. Every assertion from db9eea9 is kept; the rewrite only adds or tightens:
+Approval: "orchestrator, under the user's delegation, strengthen-only". Reason: review found four gaps in the frozen `src/test/indexHtml.test.js`. As of the final commit every assertion from db9eea9 is kept and paths are looked up literally, as in db9eea9; the rewrite only adds or tightens:
 
 - F1: the favicon link assertion now also requires `sizes="32x32"`.
 - F2: root-relative `content` attribute values (for example `og:image content="/nope.jpeg"`) are now checked, alongside `href` and `src`.
 - F3: a root-relative path must resolve inside its base directory and be a regular file, so `href="/"` (the `public/` directory) and `href="/../package.json"` (escapes `public/`) now fail.
 - F4: absolute `https://washbosspw.com/...` URLs resolve only under `public/`, and only the `src` of a `script[type=module]` maps to the repo source tree, so `https://washbosspw.com/src/main.jsx` (a 404 on Pages) now fails.
 - C1 (delta review, same approval): the first rewrite let a module script `src` resolve from the repo root for any path, dropping db9eea9's `/src/`-only rule. Restored: a module script `src` maps to the repo only when it starts with `/src/`; `src="/package.json"` or `src="/public/icon-192.png"` must now be a file in `public/` and fail.
-- N1: `decodeURIComponent` threw `URIError` on a value like `/100%`, erroring the test instead of naming the value. The decode is now caught and the value is reported in `missing`.
+- Decoding (D2-1): c5a0862 added `decodeURIComponent`, which loosened the check (`/icon%2D192.png` and module `src="/src/%2E%2E/package.json"` passed). It is removed: paths are looked up literally again. This makes the N1 fix (catching `URIError` on `/100%`) moot; `/100%` is simply reported missing.
+- Module entry (D2-note): a module script `src` starting with `/src/` is resolved within the repo's `src/` folder, so `/src/../package.json` escapes it and is rejected.
 
 Red on origin/main (86269b5, rewritten test copied into a scratch worktree), 6 of 6 failing for the expected reasons:
 
@@ -107,6 +108,9 @@ Mutation check (scratch copy of the fixed `index.html` and icons; baseline 6 of 
 | F4: canonical `href="/src/main.jsx"` (not a module script) | only references local assets that exist | `['/src/main.jsx']` |
 | C1: module script `src="/package.json"` | only references local assets that exist | `['/package.json']` |
 | C1: module script `src="/public/icon-192.png"` | only references local assets that exist | `['/public/icon-192.png']` |
-| N1: `og:image content="/100%"` | only references local assets that exist | `['/100%']` (no URIError) |
+| `og:image content="/100%"` | only references local assets that exist | `['/100%']` (no URIError) |
+| D2-1: preload `href="/icon%2D192.png"` | only references local assets that exist | `['/icon%2D192.png']` |
+| D2-1: module script `src="/src/%2E%2E/package.json"` | only references local assets that exist | `['/src/%2E%2E/package.json']` |
+| D2-note: module script `src="/src/../package.json"` | only references local assets that exist | `['/src/../package.json']` |
 
 Green on the issue branch with no production change (`index.html` and `public/` untouched by the rewrite).

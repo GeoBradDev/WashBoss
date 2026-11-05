@@ -26,16 +26,10 @@ function collectStrings(value, out = []) {
   return out
 }
 
-// Resolve a URL path against baseDir. Returns null when the path escapes
-// baseDir, names baseDir itself, or is not a regular file.
+// Resolve a URL path literally (no percent-decoding) against baseDir. Returns
+// null when the path escapes baseDir, names baseDir itself, or is not a regular file.
 function resolveLocal(urlPath, baseDir) {
-  let clean
-  try {
-    clean = decodeURIComponent(urlPath.split(/[?#]/)[0])
-  } catch {
-    return null
-  }
-  const file = join(baseDir, clean)
+  const file = join(baseDir, urlPath.split(/[?#]/)[0])
   const rel = relative(baseDir, file)
   if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return null
   if (!existsSync(file) || !statSync(file).isFile()) return null
@@ -84,7 +78,10 @@ describe('index.html', () => {
           // Only a module script under /src/ comes from the source tree (Vite bundles it);
           // everything else, including absolute site URLs below, must be a file in public/.
           const isModuleEntry = attr === 'src' && el.matches('script[type="module"]') && value.startsWith('/src/')
-          if (!resolveLocal(value, isModuleEntry ? repoRoot : publicDir)) missing.push(value)
+          const found = isModuleEntry
+            ? resolveLocal(value.slice('/src'.length), join(repoRoot, 'src'))
+            : resolveLocal(value, publicDir)
+          if (!found) missing.push(value)
         }
       }
     }
