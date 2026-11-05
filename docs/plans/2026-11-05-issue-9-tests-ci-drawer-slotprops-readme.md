@@ -74,7 +74,7 @@ Out of scope, left to other issues:
 - Criteria 4, 6: `Navbar.test.jsx`; red output before the fix recorded here.
 - Criterion 5: `Gallery.test.jsx`.
 - Criteria 7, 8: CI run on the PR shows all four steps green on the `.nvmrc` Node version.
-- Criterion 11: `git check-ignore .claude/worktrees/x` from the main checkout, and `npm run lint` there not walking worktrees.
+- Criterion 11 (these checks need this branch's config, so before merge point them at this branch's files): `git check-ignore .claude/worktrees/x` in this worktree matching `.gitignore`, the `.claude/worktrees` entry in `eslint.config.js` `globalIgnores` (or `npm run lint` from the main checkout after merge), and `npx vitest list --filesOnly --root <main checkout> --config <this branch>/vite.config.js` listing no worktree test files.
 - Criterion 12: the PR's check list shows `CI`.
 - Criteria 9, 10: README review, `npm run lint`, `npm run build`, `find . -name '*.ts*' -not -path './node_modules/*'` empty.
 - Live drive: the preview build at mobile width shows the drawer at 240px with the theme background, no `paperprops` attribute in the DOM, and nav works.
