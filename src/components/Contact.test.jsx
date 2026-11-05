@@ -570,16 +570,17 @@ describe('Contact form', () => {
     it('has no axe violations before and after a failed submit', async () => {
       stubFetch()
       const user = userEvent.setup()
-      const { container } = renderWithTheme(<Contact />)
-      // heading-order (h2 to h4 in the left column) predates #3 and is out of scope.
-      const rules = { region: { enabled: false }, 'heading-order': { enabled: false } }
+      renderWithTheme(<Contact />)
+      // All rules on, region and heading-order included: the section is a named
+      // region and the outline is h2 then h3 (#5). It runs on document.body
+      // because axe skips region on a container element.
 
       expect(emailField()).toBeInTheDocument()
-      expect(await axeViolations(container, rules)).toEqual([])
+      expect(await axeViolations(document.body)).toEqual([])
 
       await user.click(submitButton())
       expect(nameField()).toBeInvalid()
-      expect(await axeViolations(container, rules)).toEqual([])
+      expect(await axeViolations(document.body)).toEqual([])
     })
   })
 })

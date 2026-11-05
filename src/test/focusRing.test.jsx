@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Button, IconButton } from '@mui/material'
+import { Button, IconButton, List, ListItem, ListItemButton, ListItemText } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import { renderWithTheme } from './renderWithTheme'
 import theme from '../theme'
@@ -56,6 +56,28 @@ describe('theme focus ring', () => {
     const button = screen.getByRole('button', { name: 'Get a Free Quote' })
     expect(button).toHaveClass('Mui-focusVisible')
     expect(button.querySelector('.MuiTouchRipple-ripplePulsate')).toBeNull()
+  })
+
+  it('outlines a keyboard-focused drawer ListItemButton, inset so the drawer paper does not clip it', async () => {
+    const user = userEvent.setup()
+    renderWithTheme(
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton><ListItemText primary="About" /></ListItemButton>
+        </ListItem>
+      </List>,
+    )
+
+    await user.tab()
+    const item = screen.getByRole('button', { name: 'About' })
+    expect(item).toHaveFocus()
+    expect(item).toHaveClass('Mui-focusVisible')
+
+    const style = getComputedStyle(item)
+    expect(style.outlineStyle).toBe('solid')
+    expect(style.outlineWidth).toBe('3px')
+    expect(style.outlineColor).toBe(hexToRgb(theme.palette.primary.main))
+    expect(style.outlineOffset).toBe('-3px')
   })
 
   it('shows no outline on an IconButton without focus', () => {
