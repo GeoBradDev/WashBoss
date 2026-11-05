@@ -136,9 +136,12 @@ export default function Contact() {
                   <ValidationError field="message" prefix="Message" errors={state.errors} />
                 </Grid>
                 <Grid size={12}>
-                  {state.errors && state.errors.length > 0 && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      Something went wrong. Please call us directly at (636) 614-8371.
+                  {/* state.errors is a SubmissionError object (or null), set for network
+                      failures, form-level errors, and field errors alike. Hidden while a
+                      retry is submitting so the next failure is announced again. */}
+                  {state.errors && !state.submitting && (
+                    <Alert severity="error" role="alert" sx={{ mb: 2 }}>
+                      Your request was not sent. Please try again, or call us directly at (636) 614-8371.
                     </Alert>
                   )}
                   <Button
