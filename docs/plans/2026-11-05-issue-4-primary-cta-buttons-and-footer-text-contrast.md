@@ -81,9 +81,12 @@ Domain skills:
   outline in `primary.main`.
 - New `src/components/Footer.test.jsx`: copyright paragraph's computed color is
   `text.secondary`, and its ratio on `#080808` is >= 4.5.
-- `src/components/Lightbox.test.jsx` and/or `Navbar.test.jsx`: a keyboard-focused icon
-  button gets the `Mui-focusVisible` class and a computed `outline-style: solid` if jsdom
-  resolves it; otherwise rely on the theme test plus the live drive.
+- New `src/test/focusRing.test.jsx` (revised from "Lightbox or Navbar tests": jsdom
+  resolves the emotion styles, so one theme-level test covers every IconButton and Button
+  without coupling to a component): a keyboard-focused `IconButton` and contained `Button`
+  get `Mui-focusVisible` and a computed 3px solid `primary.main` outline with offset 2px;
+  the IconButton also carries the `background.default` box-shadow band; an unfocused
+  IconButton has no solid outline. `theme.test.js` therefore checks ratios only.
 
 ## Order of work
 
@@ -117,3 +120,14 @@ Domain skills:
   `outline` and `box-shadow` and screenshot each.
 - AC5: diff of `src/test/axe.js`; full gate green.
 - AC6: ratio table above, asserted in `theme.test.js`.
+
+### Red run (before the fix)
+
+`npx vitest run src/theme.test.js src/components/Footer.test.jsx src/test/focusRing.test.jsx`:
+4 failed, 5 passed.
+
+- theme: contrastText on main: `expected 2.8532608695652177 to be greater than or equal to 4.5`
+- Footer: `expected 'rgb(85, 85, 85)' to be 'rgb(204, 204, 204)'`
+- focusRing IconButton and Button: `expected 'none' to be 'solid'` (outline-style)
+- The hover test passes before the fix only because the text is still white (5.42 on the
+  computed `#B24A00`). With `#0a0a0a` text and no explicit `primary.dark` it would be 3.65.
