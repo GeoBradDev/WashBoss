@@ -51,6 +51,13 @@ export default function Gallery() {
     setOpenIndex(i)
   }
 
+  // A held Enter must not activate a thumbnail on its auto-repeat: after a
+  // held Enter closes the lightbox, focus is back here and the repeats would
+  // reopen it.
+  const handleThumbKeyDown = (e) => {
+    if (e.key === 'Enter' && e.repeat) e.preventDefault()
+  }
+
   // Commit the close first so the Modal has unmounted and removed aria-hidden
   // from the page before focus moves back to the thumbnail.
   const handleClose = () => {
@@ -81,6 +88,7 @@ export default function Gallery() {
                 focusRipple
                 aria-label={`Open photo ${i + 1} of ${PHOTOS.length}: ${photo.alt}`}
                 onClick={(e) => handleOpen(e, i)}
+                onKeyDown={handleThumbKeyDown}
                 sx={{
                   display: 'block',
                   width: '100%',
