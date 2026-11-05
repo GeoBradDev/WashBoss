@@ -26,7 +26,7 @@ The alert shows whenever the last submission failed (`state.errors` is not null)
 
 1. Only `name` and `message` render inline `ValidationError`s. A Formspree field error for `phone`, `address`, or `service` (for example a dashboard rule producing `TYPE_NUMERIC` or `REQUIRED_FIELD_MISSING`) would otherwise give no feedback at all, which is the bug this issue describes.
 2. The inline `ValidationError` has no role or live region, so a field-only failure is otherwise silent for screen reader users.
-3. In every case the request was not sent, which is what the alert says. The inline field message still says which field to fix.
+3. In every case the submission was not confirmed, which is what the alert says. For `name` and `message` the inline field message also says which field to fix; for `phone`, `address`, and `service` there is no inline message, so the alert's phone number is the user's way out. Adding inline errors for those fields belongs to issue #3 (fields and validation).
 
 ## Acceptance criteria
 
@@ -35,13 +35,13 @@ The alert shows whenever the last submission failed (`state.errors` is not null)
 3. The alert has `role="alert"`. It is unmounted while a retry is submitting, so each new failure mounts it again and is announced again.
 4. After a failure the user's entered values (name, phone, address, details, and the selected service) are still in the form, and the submit button is enabled for a retry.
 5. A field-only 422 (`errors` with `field: "name"`) shows the inline `Name should be filled out` in the Name cell (existing test unchanged) and also the general alert.
-6. The success path is unchanged: the existing success test passes and no alert renders on success.
+6. The success path is unchanged: the existing success test passes, and no error alert (no phone fallback text) renders after success. The success view's own `Alert` keeps MUI's default `role="alert"`.
 7. No fields, validation, or `required` behavior change (issue #3's scope). The form id `xqedwlwr` and the submit wiring are unchanged.
 8. Gate passes: `npm ci`, `npm run lint`, `npm test`, `npm run build`.
 
 ## Files that change
 
-- `src/components/Contact.jsx`: replace the alert condition with `state.errors && !state.submitting`; change the alert copy to `Your request was not sent. Please try again, or call us directly at (636) 614-8371.` (no em dash, keeps the phone fallback, tells the user the retry is possible). The explicit `role="alert"` is added for clarity even though it is MUI's default. Nothing else in the file changes.
+- `src/components/Contact.jsx`: replace the alert condition with `state.errors && !state.submitting`; change the alert copy to `We could not confirm your request was received. Please try again, or call us directly at (636) 614-8371.` (no em dash, keeps the phone fallback, tells the user the retry is possible). The explicit `role="alert"` is added for clarity even though it is MUI's default, plus a short comment on the condition. Nothing else in the file changes.
 - `src/components/Contact.test.jsx`: new tests (below). The two existing tests are not edited.
 - `docs/plans/2026-11-05-issue-1-contact-form-error-alert.md`: this plan.
 
@@ -64,13 +64,13 @@ A helper `mockFetchReject(error)` stubs `fetch` with `vi.fn().mockRejectedValue(
 - 5xx with non-JSON body: 502 `text/html` body: alert shown.
 - field-only 422: alert shown in addition to the inline Name message.
 - retry: first submit rejects, alert shows; second submit is a pending promise: the alert is gone while submitting; resolve it with success and the success message shows.
-- success: existing test, plus no `role="alert"` on the page after success is covered by the success test's existing assertions on the replaced view (no new edit to it).
+- success: existing test unchanged. "No error alert after success" is proven by the retry test, which asserts the phone fallback text is gone once the retry succeeds.
 
 ## Risks
 
 - Riskiest step: the "hide while submitting" condition. If wrong, the alert could flicker or never show. The retry test covers it.
 - MUI `TextField select` value check: the select renders a hidden input with `name="service"`; the test reads the visible combobox text instead.
-- Changing copy: kept short, keeps the phone number, no em dash.
+- Changing copy: kept short, keeps the phone number, no em dash. Revised in Phase 5: the first wording, "Your request was not sent", was false when the POST reaches Formspree but the response is lost or malformed (core catches every fetch and parse error and ignores the HTTP status), and its retry prompt could then create a duplicate lead. The new wording claims only that receipt was not confirmed.
 - Chosen not to do: rendering Formspree's own form-level message (`ValidationError` with no field). Its texts are technical (`Failed to fetch`, `Unexpected response format`) and would confuse customers; the fixed copy plus the phone number is clearer.
 
 ## Proof

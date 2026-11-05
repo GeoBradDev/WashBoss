@@ -141,7 +141,7 @@ export default function Contact() {
                       retry is submitting so the next failure is announced again. */}
                   {state.errors && !state.submitting && (
                     <Alert severity="error" role="alert" sx={{ mb: 2 }}>
-                      Your request was not sent. Please try again, or call us directly at (636) 614-8371.
+                      We could not confirm your request was received. Please try again, or call us directly at (636) 614-8371.
                     </Alert>
                   )}
                   <Button
