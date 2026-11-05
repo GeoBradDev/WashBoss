@@ -29,7 +29,7 @@ Component tests live next to the components they cover (`src/components/*.test.j
 
 ## Contact form
 
-The contact form posts to [Formspree](https://formspree.io) through `@formspree/react`. The form ID (`xqedwlwr`) is set in the `useForm` call in `src/components/Contact.jsx`. To point the form at a different Formspree form, change that ID. Submissions and notification emails are managed in the Formspree dashboard.
+The contact form posts to [Formspree](https://formspree.io) through `@formspree/react`. The form ID (`xqedwlwr`) is set in the `useForm` call in `src/components/Contact.jsx`. To point the form at a different Formspree form, change that ID. Submissions and notification emails are managed in the Formspree dashboard. The form checks in the browser that a name and a phone number or email are filled in before it sends, and it includes Formspree's hidden `_gotcha` honeypot field; mark `name` as required in the Formspree dashboard so the server enforces it too.
 
 ## Continuous integration
 

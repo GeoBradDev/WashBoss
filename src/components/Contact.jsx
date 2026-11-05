@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm, ValidationError } from '@formspree/react'
 import {
   Box, Container, Grid, Typography, TextField, Button,
@@ -16,9 +16,56 @@ const SERVICE_TYPES = [
   'Not Sure — Need Advice',
 ]
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const CONTACT_HINT = 'Phone or email required.'
+
+// Returns an error message per invalid field: Name is required, and the
+// customer must leave a phone or a well-formed email so we can reply.
+function validateContact({ name, phone, email }) {
+  const errors = {}
+  const trimmedEmail = email.trim()
+  if (!name.trim()) errors.name = 'Enter your name.'
+  if (!phone.trim() && !trimmedEmail) {
+    const message = 'Enter a phone number or an email. Either one is enough.'
+    errors.phone = message
+    errors.email = message
+  } else if (trimmedEmail && !EMAIL_PATTERN.test(trimmedEmail)) {
+    errors.email = 'Enter a valid email address, like name@example.com.'
+  }
+  return errors
+}
+
 export default function Contact() {
   const [state, handleSubmit] = useForm('xqedwlwr')
   const [service, setService] = useState('')
+  const [values, setValues] = useState({ name: '', phone: '', email: '' })
+  const [showErrors, setShowErrors] = useState(false)
+  const nameRef = useRef(null)
+  const phoneRef = useRef(null)
+  const emailRef = useRef(null)
+
+  // Derived during render: errors only show after the first failed submit,
+  // then update as the user types.
+  const errors = showErrors ? validateContact(values) : {}
+
+  const updateValue = (event) => {
+    const { name, value } = event.target
+    setValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const onSubmit = (event) => {
+    const found = validateContact(values)
+    if (found.name || found.phone || found.email) {
+      event.preventDefault()
+      setShowErrors(true)
+      const firstInvalid = found.name ? nameRef : found.phone ? phoneRef : emailRef
+      firstInvalid.current?.focus()
+      return
+    }
+    // handleSubmit reads event.currentTarget synchronously, so nothing may be
+    // awaited before this call.
+    handleSubmit(event)
+  }
 
   if (state.succeeded) {
     return (
@@ -94,31 +141,66 @@ export default function Contact() {
 
           {/* Right: Form */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Box component="form" onSubmit={onSubmit} noValidate>
+              {/* Formspree honeypot: bots fill it, people never see it. Hidden by a
+                  generated class, not an inline style, per Formspree's docs. */}
+              <Box
+                component="input"
+                type="text"
+                name="_gotcha"
+                id="contact-gotcha"
+                tabIndex={-1}
+                aria-hidden="true"
+                autoComplete="off"
+                sx={{ display: 'none' }}
+              />
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={12}>
                   <TextField
-                    fullWidth required label="Your Name" name="name"
+                    fullWidth required label="Your Name" name="name" id="contact-name"
+                    autoComplete="name"
                     variant="outlined"
+                    value={values.name} onChange={updateValue}
+                    inputRef={nameRef}
+                    error={Boolean(errors.name)}
+                    helperText={errors.name}
                   />
                   <ValidationError field="name" prefix="Name" errors={state.errors} />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
-                    fullWidth label="Phone Number" name="phone"
+                    fullWidth label="Phone Number" name="phone" id="contact-phone"
+                    type="tel" autoComplete="tel"
+                    slotProps={{ htmlInput: { inputMode: 'tel' } }}
                     variant="outlined"
+                    value={values.phone} onChange={updateValue}
+                    inputRef={phoneRef}
+                    error={Boolean(errors.phone)}
+                    helperText={errors.phone ?? CONTACT_HINT}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth label="Email" name="email" id="contact-email"
+                    type="email" autoComplete="email"
+                    variant="outlined"
+                    value={values.email} onChange={updateValue}
+                    inputRef={emailRef}
+                    error={Boolean(errors.email)}
+                    helperText={errors.email ?? CONTACT_HINT}
                   />
                 </Grid>
                 <Grid size={12}>
                   <TextField
-                    fullWidth label="Property Address" name="address"
+                    fullWidth label="Property Address" name="address" id="contact-address"
+                    autoComplete="street-address"
                     variant="outlined"
                     placeholder="Street address where service is needed"
                   />
                 </Grid>
                 <Grid size={12}>
                   <TextField
-                    fullWidth select label="Service Needed" name="service"
+                    fullWidth select label="Service Needed" name="service" id="contact-service"
                     value={service} onChange={(e) => setService(e.target.value)}
                     variant="outlined"
                   >
@@ -130,6 +212,7 @@ export default function Contact() {
                 <Grid size={12}>
                   <TextField
                     fullWidth multiline rows={4} label="Additional Details" name="message"
+                    id="contact-message"
                     variant="outlined"
                     placeholder="Anything else we should know about your project?"
                   />
