@@ -536,6 +536,37 @@ describe('Contact form', () => {
       expect(fetchMock.mock.calls[0][1].body.get('email')).toBe('test@example.com')
     })
 
+    it('blocks a whitespace-only name even with a valid phone', async () => {
+      const fetchMock = stubFetch()
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), '   ')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+
+      expect(nameField()).toBeInvalid()
+      expect(nameField()).toHaveAccessibleDescription(NAME_ERROR)
+      expect(nameField()).toHaveFocus()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('skips the honeypot with Shift+Tab from Name and Tab from the element before the form', async () => {
+      const user = userEvent.setup()
+      const { container } = renderWithTheme(<Contact />)
+      const gotcha = container.querySelector('input[name="_gotcha"]')
+      const callNow = screen.getByRole('link', { name: /Call Now/ })
+
+      nameField().focus()
+      await user.tab({ shift: true })
+      expect(document.activeElement).not.toBe(gotcha)
+      expect(callNow).toHaveFocus()
+
+      await user.tab()
+      expect(document.activeElement).not.toBe(gotcha)
+      expect(nameField()).toHaveFocus()
+    })
+
     it('has no axe violations before and after a failed submit', async () => {
       stubFetch()
       const user = userEvent.setup()
