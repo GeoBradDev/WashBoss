@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   AppBar, Toolbar, Box, Button, IconButton,
   Drawer, List, ListItem, ListItemButton, ListItemText,
@@ -15,6 +15,7 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const menuButtonRef = useRef(null)
 
   const handleNavClick = (href) => {
     setDrawerOpen(false)
@@ -78,6 +79,7 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <IconButton
+            ref={menuButtonRef}
             aria-label="Open navigation menu"
             aria-expanded={drawerOpen}
             aria-controls="mobile-nav-drawer"
@@ -89,8 +91,16 @@ export default function Navbar() {
         </Toolbar>
 
         {/* Mobile drawer */}
+        {/* Drawer closes after its slide transition, and the page keeps
+            aria-hidden until then. Modal's default focus restore runs as soon
+            as it starts closing, which puts focus inside aria-hidden content,
+            so focus returns to the menu button once the transition has exited. */}
         <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}
-          slotProps={{ paper: { id: 'mobile-nav-drawer', 'aria-label': 'Navigation menu', sx: { backgroundColor: 'background.default', width: 240 } } }}
+          ModalProps={{ disableRestoreFocus: true }}
+          slotProps={{
+            paper: { id: 'mobile-nav-drawer', 'aria-label': 'Navigation menu', sx: { backgroundColor: 'background.default', width: 240 } },
+            transition: { onExited: () => menuButtonRef.current?.focus() },
+          }}
         >
           <List sx={{ pt: 4 }}>
             {NAV_LINKS.map((link) => (
