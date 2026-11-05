@@ -54,10 +54,9 @@ Domain skills:
    `^10.2.6` by eslint 10.14.0 and `^10.2.4` by @eslint/config-array 0.23.5. No patched
    10.x exists. Add `"overrides": { "minimatch": "11.0.4" }`, pinned exactly to the tested
    version so any later change to it is a deliberate edit (approved by the orchestrator;
-   this is a major bump of a transitive package). Dependabot has no support for managing
-   npm `overrides` entries (an open feature request, dependabot-core issue 14736, asks for
-   it), so the override is maintained by hand: the PR body says so, lists every package `npm ls minimatch`
-   shows under it, and notes it can be removed once eslint and @eslint/config-array
+   this is a major bump of a transitive package). Dependabot is not relied on to update
+   or remove `overrides` entries, so the override is maintained by hand: the PR body says
+   so, lists every package `npm ls minimatch` shows under it, and notes it can be removed once eslint and @eslint/config-array
    depend on a patched minimatch.
 3. Raise the direct ranges in `package.json` to the resolved versions (same major), so a
    fresh resolve cannot fall back to vulnerable vite.
