@@ -45,7 +45,8 @@ Post-merge (for the orchestrator): production `/og-image.jpg` and `/logo-512.jpg
 - `public/logo-512.jpg`, `public/og-image.jpg` (new)
 - `src/logo.js` (new): `LOGO_WIDTHS`, `logoSrc(width)`, `logoSrcSet`, and the three `sizes` strings (`NAVBAR_LOGO_SIZES`, `FOOTER_LOGO_SIZES`, `HERO_LOGO_SIZES`).
 - `src/components/Navbar.jsx`, `src/components/Hero.jsx`, `src/components/Footer.jsx`: the logo img `src`, plus `srcSet` and `sizes`.
-- `index.html`: preload, `og:image`, `twitter:image`, new `og:image:*` and `twitter:image:alt` tags, JSON-LD `logo` and `image`.
+- `index.html`: preload, `og:image`, `twitter:image`, new `og:image:*` and `twitter:image:alt` tags, JSON-LD `logo` and `image`, and the viewport meta moved above the preload (see Deviation).
+- `src/test/preloadViewport.test.js` (new, see Deviation)
 - `src/test/logo.test.jsx` (new)
 - this plan
 
@@ -103,3 +104,9 @@ Not changed: `public/SCSL.jpeg`, favicons, `src/test/indexHtml.test.js`, README 
 After the images, `src/logo.js`, the three components and `index.html`: `npx vitest run src/test/logo.test.jsx src/test/indexHtml.test.js` 24 passed. Gate: `npm ci` 0 vulnerabilities, `npm run lint` clean, `npm test` 11 files / 77 tests passed, `npm run build` ok, and `dist/` holds `logo-112.webp`, `logo-168.webp`, `logo-280.webp`, `logo-320.webp`, `logo-440.webp`, `logo-660.webp`, `logo-512.jpg`, `og-image.jpg` (and the unchanged `SCSL.jpeg`). Criterion 8: `git diff --stat origin/main -- public/SCSL.jpeg public/favicon.ico public/icon-192.png public/apple-touch-icon.png src/test/indexHtml.test.js` is empty.
 
 Generated sizes (bytes): `logo-112.webp` 3972, `logo-168.webp` 7240, `logo-280.webp` 15104, `logo-320.webp` 18178, `logo-440.webp` 27410, `logo-660.webp` 46116, `logo-512.jpg` 50443, `og-image.jpg` 81951 (emblem bounding box (322, 498, 3205, 3274) in the source, scaled to 582x560).
+
+## Deviation: viewport meta must precede the preload
+
+Found in the live drive. At 375px, DPR 1.75 mobile emulation the after build made one logo request, `logo-440.webp` (27.7 KB, initiator `link`), and all three logo imgs showed it (`currentSrc` `logo-440.webp`). Cause: the preload `<link>` sat above `<meta name="viewport">`, so Chrome evaluated `imagesizes` against the default 980px mobile layout viewport, took the `(min-width: 900px) 220px` branch (220 x 1.75 = 385, so 440), and the imgs then reused the cached larger file. Lighthouse mobile flagged `logo-440.webp` in "Properly size images" (17 KiB). The plan's unit test could not see this because it is about parse order in a real browser.
+
+Fix: move `<meta name="viewport">` above the preload in `index.html`. New test `src/test/preloadViewport.test.js` asserts the viewport meta comes before any `link[rel=preload][imagesrcset]`; red on 89f0a04 (`expected 5 to be less than 4`), committed alone, then made green by the `index.html` change only.
