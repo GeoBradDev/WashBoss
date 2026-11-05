@@ -1,7 +1,10 @@
 import { createTheme } from '@mui/material/styles'
 
 // Keyboard focus ring shared with the gallery thumbnails and logo: 3px
-// primary.main, at least 6.4:1 on every page background.
+// primary.main, at least 6.4:1 on every page background (6.45:1 on the
+// #141414 cards). The mobile drawer paper renders lighter, #2e2e2e, from the
+// dark-mode elevation overlay: 4.76:1 there, and 3.25:1 on a keyboard-focused
+// drawer item's own #474747 fill (measured in Chrome), above the 3:1 minimum.
 const focusOutline = (theme) => ({
   outline: `3px solid ${theme.palette.primary.main}`,
   outlineOffset: 2,

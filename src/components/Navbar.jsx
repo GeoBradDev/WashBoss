@@ -104,49 +104,51 @@ export default function Navbar() {
             />
           </Box>
 
-          {/* Desktop nav */}
-          <Box
-            component="nav"
-            aria-label="Primary"
-            ref={desktopNavRef}
-            // Shown by the md breakpoint, and also whenever the md media query
-            // matches, so it is never hidden while it is the focus fallback.
-            sx={{ display: isDesktop ? 'flex' : { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}
-          >
-            {NAV_LINKS.map((link) => (
-              <Button
-                key={link.label}
-                component="a"
-                href={link.href}
-                onClick={(e) => handleDesktopNavClick(e, link.href)}
-                sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
-              >
-                {link.label}
-              </Button>
-            ))}
-            <Button
-              variant="contained"
-              color="primary"
-              component="a"
-              href="#contact"
-              onClick={(e) => handleDesktopNavClick(e, '#contact')}
-              sx={{ ml: 2 }}
+          {/* One Primary navigation at every width: the desktop links at md
+              and up, the hamburger below md. The logo link stays outside it. */}
+          <Box component="nav" aria-label="Primary" sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Desktop links */}
+            <Box
+              ref={desktopNavRef}
+              // Shown by the md breakpoint, and also whenever the md media query
+              // matches, so it is never hidden while it is the focus fallback.
+              sx={{ display: isDesktop ? 'flex' : { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}
             >
-              Get a Free Quote
-            </Button>
-          </Box>
+              {NAV_LINKS.map((link) => (
+                <Button
+                  key={link.label}
+                  component="a"
+                  href={link.href}
+                  onClick={(e) => handleDesktopNavClick(e, link.href)}
+                  sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+                >
+                  {link.label}
+                </Button>
+              ))}
+              <Button
+                variant="contained"
+                color="primary"
+                component="a"
+                href="#contact"
+                onClick={(e) => handleDesktopNavClick(e, '#contact')}
+                sx={{ ml: 2 }}
+              >
+                Get a Free Quote
+              </Button>
+            </Box>
 
-          {/* Mobile hamburger */}
-          <IconButton
-            ref={menuButtonRef}
-            aria-label="Open navigation menu"
-            aria-expanded={drawerOpen}
-            aria-controls="mobile-nav-drawer"
-            sx={{ display: { xs: 'flex', md: 'none' }, color: 'primary.main' }}
-            onClick={openDrawer}
-          >
-            <MenuIcon />
-          </IconButton>
+            {/* Mobile hamburger */}
+            <IconButton
+              ref={menuButtonRef}
+              aria-label="Open navigation menu"
+              aria-expanded={drawerOpen}
+              aria-controls="mobile-nav-drawer"
+              sx={{ display: { xs: 'flex', md: 'none' }, color: 'primary.main' }}
+              onClick={openDrawer}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
         </Toolbar>
 
         {/* Mobile drawer */}
@@ -163,23 +165,27 @@ export default function Navbar() {
             transition: { onExited: handleDrawerExited },
           }}
         >
-          <List sx={{ pt: 4 }}>
-            {NAV_LINKS.map((link) => (
-              <ListItem key={link.label} disablePadding>
-                <ListItemButton onClick={() => handleDrawerNavClick(link.href)}>
-                  <ListItemText primary={link.label} sx={{ color: 'text.primary' }} />
-                </ListItemButton>
+          {/* The page behind is aria-hidden while the drawer is open, so this is
+              the only Primary navigation exposed at that time. */}
+          <Box component="nav" aria-label="Primary">
+            <List sx={{ pt: 4 }}>
+              {NAV_LINKS.map((link) => (
+                <ListItem key={link.label} disablePadding>
+                  <ListItemButton onClick={() => handleDrawerNavClick(link.href)}>
+                    <ListItemText primary={link.label} sx={{ color: 'text.primary' }} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+              <ListItem sx={{ pt: 2 }}>
+                <Button
+                  fullWidth variant="contained" color="primary"
+                  onClick={() => handleDrawerNavClick('#contact')}
+                >
+                  Get a Free Quote
+                </Button>
               </ListItem>
-            ))}
-            <ListItem sx={{ pt: 2 }}>
-              <Button
-                fullWidth variant="contained" color="primary"
-                onClick={() => handleDrawerNavClick('#contact')}
-              >
-                Get a Free Quote
-              </Button>
-            </ListItem>
-          </List>
+            </List>
+          </Box>
         </Drawer>
     </AppBar>
   )
