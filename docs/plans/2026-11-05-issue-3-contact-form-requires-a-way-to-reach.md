@@ -34,7 +34,7 @@ Formspree docs (help.formspree.io, "Honeypot spam filtering", via context7 and t
 4. A new Email field exists: `type="email"`, `autoComplete="email"`, label `Email`.
 5. Every contact field has an `id`, a `name`, and an autocomplete token: Name `id="contact-name"`, `name="name"`, `autoComplete="name"`; Phone `id="contact-phone"`, `name="phone"`, `type="tel"`, `inputMode="tel"`, `autoComplete="tel"`; Email `id="contact-email"`, `name="email"`, `type="email"`, `autoComplete="email"`; Address `id="contact-address"`, `name="address"`, `autoComplete="street-address"`; Service `id="contact-service"`, `name="service"`; Details `id="contact-message"`, `name="message"`. In a live Chrome load, the Issues panel or console reports no "autocomplete attribute" and no "id or name attribute" issue for the form.
 6. A Formspree honeypot `<input type="text" name="_gotcha" id="contact-gotcha">` is in the form, hidden by a CSS class (MUI `sx`, `display: none`), with `tabIndex={-1}`, `aria-hidden="true"`, and `autoComplete="off"`. It is not in the accessibility tree, not reachable by Tab, and not visible. It is sent with an empty value on a normal submission.
-7. A valid submission (Name plus Phone, or Name plus a valid Email) posts once to `formspree.io/f/xqedwlwr` with `name`, `phone`, `email`, `address`, `service`, `message`, and `_gotcha` in the body, and shows the existing success message.
+7. A valid submission (Name plus Phone, or Name plus a valid Email) posts once to `formspree.io/f/xqedwlwr` with `name`, `phone`, `address`, `service`, `message`, `_gotcha`, and `email` only when filled (trimmed) in the body, and shows the existing success message.
 8. Existing behavior from #1 is kept: any submission error shows the general alert with the copy `We could not confirm your request was received. Please try again, or call us directly at (636) 614-8371.`, hidden while a retry submits; Formspree 422 field errors still render inline next to Name (and Message). Client-side validation failures do not show that alert.
 9. The Contact section has no axe violations, both in its initial state and with the inline errors showing.
 10. Gate passes: `npm ci`, `npm run lint`, `npm test`, `npm run build`. The form id `xqedwlwr` is unchanged. New copy has no emojis and no em dashes. Existing copy is untouched.
@@ -68,6 +68,18 @@ Criterion 1 makes that request impossible, so both fail by design once the fix l
 
 Proof that the rewritten #1 test still catches its defect: in a scratch worktree at `7738c05^` (before #1's fix), apply only the rewritten test and confirm it fails because no alert is found. Record that output under `## Proof`.
 
+
+### Approved: second rewrite, blank email left out of the payload (review round 1)
+
+Approval: the user approved this second rewrite on 2026-11-05, through the coordinator. Reason: Formspree treats a field named `email` as the reply-to address and validates it, and its docs do not say whether an empty value is rejected, so a blank `email` could block phone-only leads. The frozen test `submits with a name and phone only and sends an empty email and honeypot` is renamed `submits with a name and phone only and sends no email and an empty honeypot`, and its assertion `expect(body.get('email')).toBe('')` becomes `expect(body.has('email')).toBe(false)`. Nothing else in that test changes. Proof is under `## Proof`.
+
+## Review round 1 fixes
+
+- B: a submit blocked in the browser after a failed Formspree request left `state.errors` set, so the old general alert and old inline 422 text stayed next to the new client errors. `onSubmit` now calls `useForm`'s third return value, `reset`, when the browser check fails. Tests: network failure then a blocked submit shows no `role="alert"`, the either-or error, and one fetch in total; a 422 on `name` then a blocked submit removes `Name should be filled out`.
+- C: `ValidationError` for `phone` (prefix `Phone`) and `email` (prefix `Email`) in their grid cells, so a Formspree 422 on those fields renders inline. Tests for both.
+- D and H: after validation passes, `onSubmit` builds `new FormData(event.currentTarget)`, calls `event.preventDefault()`, deletes `email` when its trimmed value is blank or sets it to the trimmed value, and calls `handleSubmit(data)` (the library accepts `FormData`; `I(e)?$(e):e` in `@formspree/react` dist). `validateContact` trims with `String.prototype.trim`, which strips U+00A0, but the raw value used to be sent. Test: `test@example.com` followed by U+00A0 is sent as exactly `test@example.com`.
+- G (tests only): a whitespace-only Name with a valid phone is blocked with `Enter your name.`; the honeypot is skipped by Shift+Tab from Name and by Tab from the element before the form (the `Call Now` link), checked against a local mutation that removes `display: none` and `tabIndex`.
+- README: the Contact form sentence also says a malformed email blocks the submit and a blank email is left out of the request.
 
 ## Order of work
 
@@ -150,3 +162,19 @@ TestingLibraryElementError: Unable to find an accessible element with the role "
 ```
 
 The inline `Name should be filled out` assertion (line 39) passes, so the request still goes out and the 422 comes back; the test fails only on the missing general alert, which is #1's defect. The scratch worktree was then removed with `git worktree remove --force`.
+
+### Proof for the second approved rewrite (recorded 2026-11-05)
+
+The rewritten test run against the production code at 5d23f86, before the round 1 fix:
+
+```
+npx vitest run src/components/Contact.test.jsx -t 'sends no email and an empty honeypot'
+
+       × submits with a name and phone only and sends no email and an empty honeypot 357ms
+ FAIL  src/components/Contact.test.jsx > Contact form > client-side validation (#3) > submits with a name and phone only and sends no email and an empty honeypot
+AssertionError: expected true to be false // Object.is equality
+    384|       expect(body.has('email')).toBe(false)
+      Tests  1 failed | 21 skipped (22)
+```
+
+It fails because the body still contains `email` (empty), which is what the fix changes.

@@ -365,7 +365,7 @@ describe('Contact form', () => {
       expect(init.body.get('_gotcha')).toBe('')
     })
 
-    it('submits with a name and phone only and sends an empty email and honeypot', async () => {
+    it('submits with a name and phone only and sends no email and an empty honeypot', async () => {
       const fetchMock = mockFetchResponse(200, { next: 'https://formspree.io/thanks', ok: true })
       const user = userEvent.setup()
       renderWithTheme(<Contact />)
@@ -381,7 +381,7 @@ describe('Contact form', () => {
       const body = init.body
       expect(body.get('name')).toBe('Test Customer')
       expect(body.get('phone')).toBe('5555550100')
-      expect(body.get('email')).toBe('')
+      expect(body.has('email')).toBe(false)
       expect(body.get('_gotcha')).toBe('')
       for (const key of ['address', 'service', 'message']) {
         expect(body.has(key)).toBe(true)
@@ -444,6 +444,96 @@ describe('Contact form', () => {
       }
       expect(visited).toContain(submitButton())
       expect(visited).not.toContain(gotcha)
+    })
+
+    it('clears the general alert when a later submit is blocked in the browser', async () => {
+      const fetchMock = mockFetchReject(new TypeError('Failed to fetch'))
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+      expect(await screen.findByRole('alert')).toHaveTextContent('(636) 614-8371')
+
+      await user.clear(phoneField())
+      await user.click(submitButton())
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(phoneField()).toBeInvalid()
+      expect(phoneField()).toHaveAccessibleDescription(EITHER)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('clears an old Formspree 422 Name message when a later submit is blocked in the browser', async () => {
+      const fetchMock = mockFetchResponse(422, {
+        errors: [{ field: 'name', code: 'REQUIRED_FIELD_EMPTY', message: 'should be filled out' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+      expect(await screen.findByText('Name should be filled out')).toBeInTheDocument()
+
+      await user.clear(phoneField())
+      await user.click(submitButton())
+
+      expect(screen.queryByText('Name should be filled out')).not.toBeInTheDocument()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(phoneField()).toBeInvalid()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows a Formspree 422 email error inline in the Email cell', async () => {
+      mockFetchResponse(422, {
+        errors: [{ field: 'email', code: 'TYPE_EMAIL', message: 'should be an email' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.type(emailField(), 'test@example.com')
+      await user.click(submitButton())
+
+      await screen.findByText('Email should be an email')
+      const emailCell = emailField().closest('.MuiGrid-root')
+      expect(within(emailCell).getByText('Email should be an email')).toBeInTheDocument()
+      const phoneCell = phoneField().closest('.MuiGrid-root')
+      expect(within(phoneCell).queryByText('Email should be an email')).not.toBeInTheDocument()
+    })
+
+    it('shows a Formspree 422 phone error inline in the Phone cell', async () => {
+      mockFetchResponse(422, {
+        errors: [{ field: 'phone', code: 'TYPE_TEXT', message: 'is not valid' }],
+      })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(phoneField(), '5555550100')
+      await user.click(submitButton())
+
+      await screen.findByText('Phone is not valid')
+      const phoneCell = phoneField().closest('.MuiGrid-root')
+      expect(within(phoneCell).getByText('Phone is not valid')).toBeInTheDocument()
+    })
+
+    it('sends the email trimmed when it ends with a non-breaking space', async () => {
+      const fetchMock = mockFetchResponse(200, { next: 'https://formspree.io/thanks', ok: true })
+      const user = userEvent.setup()
+      renderWithTheme(<Contact />)
+
+      await user.type(nameField(), 'Test Customer')
+      await user.type(emailField(), 'test@example.com\u00a0')
+      expect(emailField()).toHaveValue('test@example.com\u00a0')
+      await user.click(submitButton())
+
+      expect(await screen.findByText(/Message sent!/)).toBeInTheDocument()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock.mock.calls[0][1].body.get('email')).toBe('test@example.com')
     })
 
     it('has no axe violations before and after a failed submit', async () => {
