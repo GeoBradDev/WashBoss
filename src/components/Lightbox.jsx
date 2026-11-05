@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Modal, Box, IconButton, Typography } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -14,20 +13,21 @@ const controlSx = {
 export default function Lightbox({ photos, index, onClose, onPrev, onNext }) {
   const open = index !== null
 
-  useEffect(() => {
-    if (!open) return undefined
-    const handleKey = (e) => {
-      if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowLeft') onPrev()
-      else if (e.key === 'ArrowRight') onNext()
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [open, onClose, onPrev, onNext])
-
   if (!open) return null
 
   const photo = photos[index]
+
+  // Modal handles Escape and backdrop clicks through onClose. Arrow keys are
+  // handled here; Modal's focus trap keeps focus inside this box while open.
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      onPrev()
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      onNext()
+    }
+  }
 
   return (
     <Modal
@@ -36,6 +36,10 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }) {
       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-label="Photo viewer"
+        onKeyDown={handleKeyDown}
         sx={{
           position: 'relative',
           outline: 'none',
@@ -75,6 +79,7 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }) {
 
         <IconButton
           aria-label="Close"
+          autoFocus
           onClick={onClose}
           sx={{ ...controlSx, top: 8, right: 8 }}
         >
