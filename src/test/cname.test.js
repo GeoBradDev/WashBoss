@@ -3,8 +3,9 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// public/CNAME is copied into dist/ by Vite, so the deployed site carries
-// the production custom domain.
+// public/CNAME records the production custom domain. Pages ignores the file
+// when deploying from Actions (the domain lives in the Pages settings), so this
+// guards the recorded value against accidental edits.
 const cnamePath = join(dirname(fileURLToPath(import.meta.url)), '../../public/CNAME')
 
 describe('public/CNAME', () => {

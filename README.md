@@ -39,11 +39,11 @@ The contact form posts to [Formspree](https://formspree.io) through `@formspree/
 
 Every push to `main` deploys the site from CI. In `.github/workflows/ci.yml`, the `CI` job uploads the `dist/` it just linted, tested, and built as a GitHub Pages artifact, and the `Deploy` job publishes it with `actions/deploy-pages` only after `CI` passes. Pull requests run `CI` but never deploy. The GitHub Pages source must be set to "GitHub Actions".
 
-To redeploy the current `main` without a new commit, run the workflow from the Actions tab ("Run workflow" on `main`).
+To redeploy the current `main` without a new commit, run the workflow from the Actions tab ("Run workflow" on `main`). Re-running only a failed `Deploy` job works while its Pages artifact is kept (one day); after that, use "Run workflow".
 
 To roll back, revert the bad commit on `main` (through a pull request, like any other change). The push of the revert deploys the previous version.
 
-The custom domain (`washbosspw.com`) is set in the repository's Pages settings. `public/CNAME` holds the same domain and is copied into `dist/` by the build.
+The custom domain (`washbosspw.com`) is set in the repository's Pages settings. `public/CNAME` records the same domain and is copied into `dist/` by the build, but Pages ignores it when deploying from Actions.
 
 ## Agent workflows
 

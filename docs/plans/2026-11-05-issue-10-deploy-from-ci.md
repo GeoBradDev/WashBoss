@@ -27,7 +27,7 @@ Domain skills:
 - `package.json`, `package-lock.json`: `npm uninstall gh-pages`, delete `predeploy` and `deploy` scripts.
 - `CNAME` (root): delete.
 - `.nojekyll` (root), `public/.nojekyll`: delete.
-- `src/test/cname.test.js` (new): asserts `public/CNAME` content.
+- `src/test/cname.test.js` (new): asserts `public/CNAME` content. Pages ignores a CNAME file under an Actions source, so the file and test only record the domain; the live domain is the Pages setting.
 - `README.md`: commands table, CI section, Deploying section.
 - `docs/plans/2026-11-05-issue-10-deploy-from-ci.md`: this plan.
 
@@ -84,7 +84,10 @@ jobs:
 
 ## Risks
 
-- Riskiest step: the first deploy after merge. If the Pages source is still `legacy` when the push run happens, `deploy-pages` fails (red deploy job on `main`, site unchanged, still served from `gh-pages`). Mitigation: the orchestrator switches `build_type` to `workflow` before merging; `workflow_dispatch` allows a retry without a new commit.
+- Riskiest step: the first deploy after merge. If the Pages source is still `legacy` when the push run happens, the outcome is uncertain: `deploy-pages` may fail (site stays on `gh-pages`), or, because the protected `github-pages` environment allows `main`, it may succeed and a later legacy build could overwrite it. Mitigation: the orchestrator switches `build_type` to `workflow` before merging; `workflow_dispatch` allows a retry without a new commit.
+- Two pushes close together: the `pages` concurrency group serializes deploys but orders them by when each run's `CI` finishes, not by commit, so an older build can land last. Accepted for a single-author repo; "Run workflow" on `main` corrects it.
+- Re-running only a failed `Deploy` job needs the Pages artifact, which `upload-pages-artifact` keeps for one day by default.
+- Reverting this change on `main` does not switch the Pages source back; the fallback for a broken Actions deploy is switching the source back to the `gh-pages` branch, which is kept until a CI deploy is confirmed live.
 - Environment branch policy: `github-pages` currently allows branches `main` and `gh-pages` (read via `gh api`, no writes), so the deploy from `main` is permitted.
 - Custom domain: with an Actions source, the domain comes from the Pages setting (currently `cname: washbosspw.com`, HTTPS enforced), not from a file. Keeping `public/CNAME` is harmless and documents the domain.
 - PR runs: the upload step and the deploy job are skipped on `pull_request`, so the required `CI` check is unaffected. Branch protection only requires `CI`, so the skipped `Deploy` does not block.
