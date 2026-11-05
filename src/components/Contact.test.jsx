@@ -412,6 +412,15 @@ describe('Contact form', () => {
       expect(container.querySelector('#contact-service')).not.toBeNull()
     })
 
+    it('gives every form control in the form an id or a name, so Chrome reports no form field issue', () => {
+      const { container } = renderWithTheme(<Contact />)
+      const form = container.querySelector('form')
+      const unnamed = [...form.querySelectorAll('input, textarea, select')]
+        .filter((el) => !el.id && !el.name)
+        .map((el) => el.outerHTML.slice(0, 80))
+      expect(unnamed).toEqual([])
+    })
+
     it('includes a hidden Formspree honeypot that is not a textbox and is skipped by Tab', async () => {
       const user = userEvent.setup()
       const { container } = renderWithTheme(<Contact />)
