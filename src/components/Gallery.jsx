@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Box, ButtonBase, Container, Grid, Typography } from '@mui/material'
 import Lightbox from './Lightbox'
 
@@ -41,6 +42,22 @@ const PHOTOS = ALTS.map((alt, i) => {
 
 export default function Gallery() {
   const [openIndex, setOpenIndex] = useState(null)
+  // The thumbnail button that opened the lightbox. A click does not focus a
+  // button in every browser (Safari), so focus is returned here explicitly.
+  const openerRef = useRef(null)
+
+  const handleOpen = (e, i) => {
+    openerRef.current = e.currentTarget
+    setOpenIndex(i)
+  }
+
+  // Commit the close first so the Modal has unmounted and removed aria-hidden
+  // from the page before focus moves back to the thumbnail.
+  const handleClose = () => {
+    flushSync(() => setOpenIndex(null))
+    openerRef.current?.focus()
+    openerRef.current = null
+  }
 
   const handlePrev = () =>
     setOpenIndex((i) => (i + PHOTOS.length - 1) % PHOTOS.length)
@@ -63,7 +80,7 @@ export default function Gallery() {
               <ButtonBase
                 focusRipple
                 aria-label={`Open photo ${i + 1} of ${PHOTOS.length}: ${photo.alt}`}
-                onClick={() => setOpenIndex(i)}
+                onClick={(e) => handleOpen(e, i)}
                 sx={{
                   display: 'block',
                   width: '100%',
@@ -104,7 +121,7 @@ export default function Gallery() {
       <Lightbox
         photos={PHOTOS}
         index={openIndex}
-        onClose={() => setOpenIndex(null)}
+        onClose={handleClose}
         onPrev={handlePrev}
         onNext={handleNext}
       />

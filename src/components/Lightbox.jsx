@@ -41,6 +41,8 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }) {
     <Modal
       open={open}
       onClose={onClose}
+      // Gallery returns focus to the thumbnail that opened the lightbox.
+      disableRestoreFocus
       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <Box
