@@ -1,4 +1,5 @@
 import { Box, Container, Typography, Divider } from '@mui/material'
+import { logoSrc, logoSrcSet, FOOTER_LOGO_SIZES } from '../logo'
 
 export default function Footer() {
   return (
@@ -7,7 +8,9 @@ export default function Footer() {
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Box
             component="img"
-            src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
+            src={logoSrc(168)}
+            srcSet={logoSrcSet}
+            sizes={FOOTER_LOGO_SIZES}
             alt="Wash Boss Pressure Washing"
             loading="lazy"
             decoding="async"

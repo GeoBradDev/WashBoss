@@ -53,7 +53,7 @@ Not changed: `public/SCSL.jpeg`, favicons, `src/test/indexHtml.test.js`, README 
 
 ## Order of work
 
-1. Red test. Write `src/test/logo.test.jsx` (jsdom env, `renderWithTheme` from `src/test/renderWithTheme.jsx`, `node:fs` like `indexHtml.test.js`). Helpers: `webpSize(buf)` that reads VP8 (bytes 26-29, 14-bit), VP8L (bytes 21-24) and VP8X (bytes 24-29, 24-bit minus 1) headers; `jpegSize(buf)` that walks markers to the SOF0/SOF2 frame; `parseSrcset(str)` into `{ url, w }`; `pick(candidates, needed)` = smallest `w >= needed`. Tests:
+1. Red test. Write `src/test/logo.test.jsx` (jsdom env, `renderWithTheme` from `src/test/renderWithTheme.jsx`, `node:fs` like `indexHtml.test.js`). Helpers: `webpSize(buf)` that reads VP8 (bytes 26-29, 14-bit), VP8L (bytes 21-24) and VP8X (bytes 24-29, 24-bit minus 1) headers; `jpegInfo(buf)` that walks markers to the SOF0/SOF2 frame and returns the size plus whether it is baseline (SOF0), so criterion 6's "baseline JPEG" is checked too; `parseSrcset(str)` into `{ url, w }`; `pick(candidates, needed)` = smallest `w >= needed`. Tests:
    - each `logo-N.webp` exists, is WebP, is N x N (criterion 1);
    - render Navbar, Hero, Footer; the logo img in each has the expected `sizes`, a `srcset` whose URLs are exactly the six variants with matching `w`, a `src` that is one of them, and no `SCSL.jpeg` (criterion 2);
    - for each slot and DPR, `pick` returns a candidate (criterion 3);
@@ -97,3 +97,9 @@ Not changed: `public/SCSL.jpeg`, favicons, `src/test/indexHtml.test.js`, README 
 ### Red run (before any production change)
 
 `npx vitest run src/test/logo.test.jsx` on the plan commit: 18 failed (18). Each failure is the missing feature: the six `logo-N.webp` files do not exist (`expected false to be true`), the three logo imgs have no `sizes`/`srcset` (`expected null to be '56px'`, `'80px'`, `'(min-width: 900px) 220px, 160px'`), the DPR and byte budget checks find no `srcset` (`expected null not to be null`), `index.html` still names `SCSL.jpeg` and its preload has no `type` (`expected null to be 'image/webp'`), and `og:image` and JSON-LD `logo` still point at `https://washbosspw.com/SCSL.jpeg`.
+
+### Green run
+
+After the images, `src/logo.js`, the three components and `index.html`: `npx vitest run src/test/logo.test.jsx src/test/indexHtml.test.js` 24 passed. Gate: `npm ci` 0 vulnerabilities, `npm run lint` clean, `npm test` 11 files / 77 tests passed, `npm run build` ok, and `dist/` holds `logo-112.webp`, `logo-168.webp`, `logo-280.webp`, `logo-320.webp`, `logo-440.webp`, `logo-660.webp`, `logo-512.jpg`, `og-image.jpg` (and the unchanged `SCSL.jpeg`). Criterion 8: `git diff --stat origin/main -- public/SCSL.jpeg public/favicon.ico public/icon-192.png public/apple-touch-icon.png src/test/indexHtml.test.js` is empty.
+
+Generated sizes (bytes): `logo-112.webp` 3972, `logo-168.webp` 7240, `logo-280.webp` 15104, `logo-320.webp` 18178, `logo-440.webp` 27410, `logo-660.webp` 46116, `logo-512.jpg` 50443, `og-image.jpg` 81951 (emblem bounding box (322, 498, 3205, 3274) in the source, scaled to 582x560).

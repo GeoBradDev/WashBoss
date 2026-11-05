@@ -4,6 +4,7 @@ import {
   Drawer, List, ListItem, ListItemButton, ListItemText,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
+import { logoSrc, logoSrcSet, NAVBAR_LOGO_SIZES } from '../logo'
 
 const NAV_LINKS = [
   { label: 'Services', href: '#services' },
@@ -50,7 +51,9 @@ export default function Navbar() {
           >
             <Box
               component="img"
-              src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
+              src={logoSrc(112)}
+              srcSet={logoSrcSet}
+              sizes={NAVBAR_LOGO_SIZES}
               alt=""
               sx={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', display: 'block' }}
             />
