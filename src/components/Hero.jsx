@@ -1,6 +1,7 @@
 import { Box, Typography, Button, Stack } from '@mui/material'
 import PhoneIcon from '@mui/icons-material/Phone'
 import AssignmentIcon from '@mui/icons-material/Assignment'
+import { logoSrc, logoSrcSet, HERO_LOGO_SIZES } from '../logo'
 
 export default function Hero() {
   const handleScrollTo = (id) => {
@@ -35,7 +36,9 @@ export default function Hero() {
       {/* Logo */}
       <Box
         component="img"
-        src={`${import.meta.env.BASE_URL}SCSL.jpeg`}
+        src={logoSrc(440)}
+        srcSet={logoSrcSet}
+        sizes={HERO_LOGO_SIZES}
         alt="Wash Boss Pressure Washing Logo"
         fetchPriority="high"
         decoding="async"
